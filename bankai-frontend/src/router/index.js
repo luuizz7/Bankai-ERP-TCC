@@ -1,6 +1,7 @@
 // frontend/src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router';
 
+// Páginas principais
 import Dashboard from '../views/Dashboard.vue';
 import Agenda from '../views/Agenda.vue';
 import MinhaConta from '../views/MinhaConta.vue';
@@ -35,21 +36,25 @@ const routes = [
   { path: '/agenda', name: 'agenda', component: Agenda },
   { path: '/minha-conta', name: 'minha-conta', component: MinhaConta },
 
+  // Cadastros
   { path: '/cadastros/clientes', component: Clientes },
   { path: '/cadastros/fornecedores', component: Fornecedores },
   { path: '/cadastros/produtos', component: Produtos },
   { path: '/cadastros/categorias', component: Categorias },
   { path: '/cadastros/vendedores', component: Vendedores },
 
+  // Suprimentos
   { path: '/suprimentos/estoque', component: Estoque },
   { path: '/suprimentos/ordens-compra', component: OrdensCompra },
   { path: '/suprimentos/notas-entrada', component: NotasEntrada },
   { path: '/suprimentos/necessidade-compra', component: NecessidadeCompra },
 
+  // Vendas
   { path: '/vendas/pdv', component: PDV },
   { path: '/vendas/orcamentos', component: Orcamentos },
   { path: '/vendas/pedidos-venda', component: PedidosVenda },
 
+  // Finanças
   { path: '/financas/caixa', component: Caixa },
   { path: '/financas/contas-pagar', component: ContasPagar },
   { path: '/financas/contas-receber', component: ContasReceber },
