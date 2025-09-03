@@ -9,9 +9,13 @@ import MinhaConta from '../views/MinhaConta.vue';
 // Cadastros
 import Clientes from '../views/cadastros/Clientes.vue';
 import Fornecedores from '../views/cadastros/Fornecedores.vue';
-import Produtos from '../views/cadastros/Produtos.vue';
+// import Produtos from '../views/cadastros/Produtos.vue'; // <-- 1. REMOVIDO
 import Categorias from '../views/cadastros/Categorias.vue';
 import Vendedores from '../views/cadastros/Vendedores.vue';
+// 2. ADICIONADO ABAIXO
+import ProdutosLista from '../views/cadastros/ProdutosLista.vue';
+import ProdutoForm from '../views/cadastros/ProdutoForm.vue';
+
 
 // Suprimentos
 import Estoque from '../views/suprimentos/Estoque.vue';
@@ -37,32 +41,53 @@ const routes = [
   { path: '/minha-conta', name: 'minha-conta', component: MinhaConta },
 
   // Cadastros
-  { path: '/cadastros/clientes', component: Clientes },
-  { path: '/cadastros/fornecedores', component: Fornecedores },
-  { path: '/cadastros/produtos', component: Produtos },
-  { path: '/cadastros/categorias', component: Categorias },
-  { path: '/cadastros/vendedores', component: Vendedores },
+  { path: '/cadastros/clientes', name: 'clientes', component: Clientes },
+  { path: '/cadastros/fornecedores', name: 'fornecedores', component: Fornecedores },
+  
+  // {path: '/cadastros/produtos/:id?', name: 'produtos', component: Produtos }, // <-- 3. ROTA ANTIGA REMOVIDA
+  
+  // 3. NOVAS ROTAS DE PRODUTOS ADICIONADAS ABAIXO
+  {
+    path: '/cadastros/produtos',
+    name: 'produtos-lista',
+    component: ProdutosLista
+  },
+  {
+    path: '/cadastros/produtos/novo',
+    name: 'produto-novo',
+    component: ProdutoForm
+  },
+  {
+    path: '/cadastros/produtos/editar/:id',
+    name: 'produto-editar',
+    component: ProdutoForm
+  },
+
+  { path: '/cadastros/categorias', name: 'categorias', component: Categorias },
+  { path: '/cadastros/vendedores', name: 'vendedores', component: Vendedores },
 
   // Suprimentos
-  { path: '/suprimentos/estoque', component: Estoque },
-  { path: '/suprimentos/ordens-compra', component: OrdensCompra },
-  { path: '/suprimentos/notas-entrada', component: NotasEntrada },
-  { path: '/suprimentos/necessidade-compra', component: NecessidadeCompra },
+  { path: '/suprimentos/estoque', name: 'estoque', component: Estoque },
+  { path: '/suprimentos/ordens-compra', name: 'ordens-compra', component: OrdensCompra },
+  { path: '/suprimentos/notas-entrada', name: 'notas-entrada', component: NotasEntrada },
+  { path: '/suprimentos/necessidade-compra', name: 'necessidade-compra', component: NecessidadeCompra },
 
   // Vendas
-  { path: '/vendas/pdv', component: PDV },
-  { path: '/vendas/orcamentos', component: Orcamentos },
-  { path: '/vendas/pedidos-venda', component: PedidosVenda },
+  { path: '/vendas/pdv', name: 'pdv', component: PDV },
+  { path: '/vendas/orcamentos', name: 'orcamentos', component: Orcamentos },
+  { path: '/vendas/pedidos-venda', name: 'pedidos-venda', component: PedidosVenda },
 
   // Finanças
-  { path: '/financas/caixa', component: Caixa },
-  { path: '/financas/contas-pagar', component: ContasPagar },
-  { path: '/financas/contas-receber', component: ContasReceber },
-  { path: '/financas/impostos', component: Impostos },
-  { path: '/financas/folha-pagamento', component: FolhaPagamento },
+  { path: '/financas/caixa', name: 'caixa', component: Caixa },
+  { path: '/financas/contas-pagar', name: 'contas-pagar', component: ContasPagar },
+  { path: '/financas/contas-receber', name: 'contas-receber', component: ContasReceber },
+  { path: '/financas/impostos', name: 'impostos', component: Impostos },
+  { path: '/financas/folha-pagamento', name: 'folha-pagamento', component: FolhaPagamento },
 ];
 
-export const router = createRouter({
+const router = createRouter({
   history: createWebHistory(),
   routes,
 });
+
+export default router;
