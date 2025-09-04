@@ -1,4 +1,3 @@
-// frontend/src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router';
 
 // Páginas principais
@@ -9,13 +8,13 @@ import MinhaConta from '../views/MinhaConta.vue';
 // Cadastros
 import Clientes from '../views/cadastros/Clientes.vue';
 import Fornecedores from '../views/cadastros/Fornecedores.vue';
-// import Produtos from '../views/cadastros/Produtos.vue'; // <-- 1. REMOVIDO
 import Categorias from '../views/cadastros/Categorias.vue';
 import Vendedores from '../views/cadastros/Vendedores.vue';
-// 2. ADICIONADO ABAIXO
+
+// Produtos wrapper + filhos
+import Produtos from '../views/cadastros/Produtos.vue';
 import ProdutosLista from '../views/cadastros/ProdutosLista.vue';
 import ProdutoForm from '../views/cadastros/ProdutoForm.vue';
-
 
 // Suprimentos
 import Estoque from '../views/suprimentos/Estoque.vue';
@@ -43,24 +42,29 @@ const routes = [
   // Cadastros
   { path: '/cadastros/clientes', name: 'clientes', component: Clientes },
   { path: '/cadastros/fornecedores', name: 'fornecedores', component: Fornecedores },
-  
-  // {path: '/cadastros/produtos/:id?', name: 'produtos', component: Produtos }, // <-- 3. ROTA ANTIGA REMOVIDA
-  
-  // 3. NOVAS ROTAS DE PRODUTOS ADICIONADAS ABAIXO
+
+  // Produtos (wrapper com rotas filhas)
   {
     path: '/cadastros/produtos',
-    name: 'produtos-lista',
-    component: ProdutosLista
-  },
-  {
-    path: '/cadastros/produtos/novo',
-    name: 'produto-novo',
-    component: ProdutoForm
-  },
-  {
-    path: '/cadastros/produtos/editar/:id',
-    name: 'produto-editar',
-    component: ProdutoForm
+    component: Produtos,
+    children: [
+      {
+        path: '',
+        name: 'produtos-lista',
+        component: ProdutosLista,
+      },
+      {
+        path: 'novo',
+        name: 'produto-novo',
+        component: ProdutoForm,
+      },
+      {
+        path: 'editar/:id',
+        name: 'produto-editar',
+        component: ProdutoForm,
+        props: true,
+      },
+    ],
   },
 
   { path: '/cadastros/categorias', name: 'categorias', component: Categorias },

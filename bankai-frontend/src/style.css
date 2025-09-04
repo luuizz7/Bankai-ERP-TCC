@@ -8,9 +8,14 @@
   --text-primary: #E0E0E5;
   --text-secondary: #A9A9B2;
   --accent-color: #3699FF;
+  --accent-color-hover: #2b7cdb;
   --border-color: #323248;
-  --success-color: #50CD89; /* Adicionado novamente */
-  --danger-color: #F64E60;  /* Adicionado novamente */
+  --success-color: #50CD89;
+  --danger-color: #F64E60;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
@@ -18,14 +23,21 @@ body {
   background-color: var(--background-dark);
   color: var(--text-primary);
   font-size: 14px;
+  margin: 0;
 }
 
 a {
   text-decoration: none;
   color: inherit;
+  transition: color 0.3s ease;
+}
+a:hover {
+  color: var(--accent-color);
 }
 
-/* ESTILOS GLOBAIS DE FORMULÁRIO */
+/* ===============================
+   FORMULÁRIOS
+================================= */
 .form-group {
   margin-bottom: 1.25rem;
 }
@@ -36,7 +48,9 @@ a {
   font-size: 0.9rem;
   font-weight: 500;
 }
-.form-group input, .form-group select {
+.form-group input,
+.form-group select,
+.form-group textarea {
   width: 100%;
   background-color: var(--background-light);
   border: 1px solid var(--border-color);
@@ -44,14 +58,29 @@ a {
   padding: 0.75rem 1rem;
   border-radius: 6px;
   font-size: 1rem;
-  transition: border-color 0.2s;
+  transition: border-color 0.3s, box-shadow 0.3s;
 }
-.form-group input:focus, .form-group select:focus {
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
   outline: none;
   border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(54, 153, 255, 0.25);
+}
+.form-group input.error,
+.form-group select.error,
+.form-group textarea.error {
+  border-color: var(--danger-color);
+}
+.form-group input.success,
+.form-group select.success,
+.form-group textarea.success {
+  border-color: var(--success-color);
 }
 
-/* ESTILOS GLOBAIS DE BOTÕES */
+/* ===============================
+   BOTÕES
+================================= */
 .btn {
   padding: 0.75rem 1.5rem;
   border-radius: 6px;
@@ -62,20 +91,126 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  transition: background-color 0.5s, border-color 0.5s; /* Adicionei transição para hover */
+  transition: background-color 0.3s, border-color 0.3s, opacity 0.3s;
+}
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 .btn-primary {
   background-color: var(--accent-color);
-  color: white;
+  color: #fff;
 }
-.btn-primary:hover { /* Adicionado hover para primário */
-  background-color: #2b7cdb; /* Um tom ligeiramente mais escuro */
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--accent-color-hover);
 }
 .btn-secondary {
   background-color: var(--background-light);
   border: 1px solid var(--border-color);
   color: var(--text-primary);
 }
-.btn-secondary:hover {
+.btn-secondary:hover:not(:disabled) {
   border-color: var(--accent-color);
+  color: var(--accent-color);
 }
+
+/* ===============================
+   SCROLLBAR (tema escuro)
+================================= */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--background-dark);
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--accent-color);
+}
+
+/* ===============================
+   FORMULÁRIO PRODUTO (LAYOUT LIMPO)
+================================= */
+
+/* Linha de campos lado a lado */
+.form-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+/* Cada grupo dentro da linha */
+.form-row .form-group {
+  flex: 1 1 220px; /* ocupa pelo menos 220px e cresce conforme o espaço */
+}
+
+/* Campos que ocupam a largura total da linha */
+.form-group.full-width {
+  flex: 1 1 100%;
+}
+
+/* Seções dentro do formulário com título */
+.form-section {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 1.5rem;
+}
+
+.form-section h3 {
+  margin-bottom: 1rem;
+  color: var(--accent-color);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* Ajustes gerais para inputs, selects e textarea já existentes */
+.form-section input,
+.form-section select,
+.form-section textarea {
+  background-color: var(--background-dark);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.form-section input:focus,
+.form-section select:focus,
+.form-section textarea:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(54, 153, 255, 0.25);
+}
+
+/* ===============================
+   GRID DE FORMULÁRIOS (12 COLUNAS)
+================================= */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Classes de proporção (para .col-1 até .col-12) */
+.col-1 { grid-column: span 1; }
+.col-2 { grid-column: span 2; }
+.col-3 { grid-column: span 3; }
+.col-4 { grid-column: span 4; }
+.col-5 { grid-column: span 5; }
+.col-6 { grid-column: span 6; }
+.col-7 { grid-column: span 7; }
+.col-8 { grid-column: span 8; }
+.col-9 { grid-column: span 9; }
+.col-10 { grid-column: span 10; }
+.col-11 { grid-column: span 11; }
+.col-12 { grid-column: span 12; }

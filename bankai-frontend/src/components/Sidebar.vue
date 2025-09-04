@@ -7,13 +7,31 @@
       </div>
 
       <ul class="menu-list-l1">
-        <li v-for="item in menuItems" :key="item.name" class="menu-item-l1">
-          <a class="menu-link-l1">
+        <li
+          v-for="(item, i) in menuItems"
+          :key="item.name"
+          class="menu-item-l1"
+          @mouseenter="open(i)"
+          @mouseleave="scheduleClose"
+        >
+          <!-- Para itens com children, não navega; para itens sem children, navega -->
+          <component
+            :is="item.children ? 'div' : 'router-link'"
+            class="menu-link-l1"
+            v-bind="!item.children ? { to: item.path } : {}"
+          >
             <font-awesome-icon :icon="item.icon" class="icon" />
             <span>{{ item.name }}</span>
-          </a>
+          </component>
 
-          <div v-if="item.children" class="sidebar-l2">
+          <!-- Submenu -->
+          <div
+            v-if="item.children"
+            class="sidebar-l2"
+            :class="{ show: active === i }"
+            @mouseenter="open(i)"
+            @mouseleave="scheduleClose"
+          >
             <div class="submenu-header">
               <h3>{{ item.name }}</h3>
             </div>
@@ -40,9 +58,23 @@
 <script setup>
 import { ref } from 'vue';
 
+const active = ref(null);
+let hideTimer = null;
+
+function open(i) {
+  if (hideTimer) clearTimeout(hideTimer);
+  active.value = i;
+}
+function scheduleClose() {
+  if (hideTimer) clearTimeout(hideTimer);
+  hideTimer = setTimeout(() => {
+    active.value = null;
+  }, 180); // pequeno delay para você "entrar" no submenu
+}
+
 const menuItems = ref([
-   { 
-    name: 'Início', 
+  {
+    name: 'Início',
     icon: 'fa-solid fa-house',
     children: [
       { name: 'Dashboard', path: '/dashboard' },
@@ -99,7 +131,7 @@ const menuItems = ref([
   z-index: 100;
 }
 
-/* Painel 1: O menu principal */
+/* Painel 1 */
 .sidebar-l1 {
   width: 260px;
   height: 100vh;
@@ -126,7 +158,7 @@ const menuItems = ref([
   place-items: center;
   font-weight: bold;
   font-size: 1.5rem;
-  color: white;
+  color: #fff;
   flex-shrink: 0;
 }
 .logo-text {
@@ -138,12 +170,15 @@ const menuItems = ref([
 .menu-list-l1 {
   list-style: none;
   flex-grow: 1;
+  margin: 0;
+  padding: 0;
 }
 
 .menu-item-l1 {
   position: relative;
 }
 
+/* link do nível 1 */
 .menu-link-l1 {
   display: flex;
   align-items: center;
@@ -153,12 +188,13 @@ const menuItems = ref([
   color: var(--text-secondary);
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  text-decoration: none;
 }
-
-.menu-item-l1:hover > .menu-link-l1 {
+.menu-item-l1:hover > .menu-link-l1,
+.menu-link-l1.router-link-active {
   background-color: var(--accent-color);
-  color: white;
+  color: #fff;
 }
 
 .icon {
@@ -168,66 +204,68 @@ const menuItems = ref([
   text-align: center;
 }
 
-.sidebar-footer {
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
-}
-.profile { display: flex; align-items: center; }
-.profile-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: #FF5B5B;
-  display: grid;
-  place-items: center;
-  font-weight: bold;
-  flex-shrink: 0;
-}
-
-/* Painel 2: O submenu que aparece */
+/* Painel 2 (submenu) */
 .sidebar-l2 {
-  opacity: 0;
-  transform: translateX(-10px);
-  pointer-events: none;
-  transition: opacity 0.5s ease, transform 0.5s ease;
   position: absolute;
-  left: 250px;
   top: 0;
-  width: 280px;
-  height: 100%;
-  background-color: #151521;
+  left: calc(100% - 2px); /* sobrepõe 2px para não ter gap */
+  min-width: 280px;
+  background-color: var(--sidebar-bg);
   border-right: 1px solid var(--border-color);
-  box-shadow: 4px 0px 10px rgba(0,0,0,0.2);
+  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.2);
   padding: 1.5rem;
-  z-index: 100;
+  z-index: 1000;
+
+  /* animação/visibilidade */
+  opacity: 0;
+  transform: translateX(-6px);
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
 }
 
-.menu-item-l1:hover > .sidebar-l2 {
+/* quando ativo via estado Vue */
+.sidebar-l2.show {
   opacity: 1;
   transform: translateX(0);
+  visibility: visible;
   pointer-events: auto;
 }
 
 .submenu-header h3 {
-  font-size: 1.5rem;
+  font-size: 1.1rem;
   color: var(--text-primary);
-  margin-bottom: 2rem;
-  padding-left: 1rem;
+  margin: 0 0 1rem 0;
+  padding-left: 0.25rem;
 }
 
 .submenu-list {
   list-style: none;
+  padding: 0;
+  margin: 0;
 }
 .submenu-link {
   display: block;
   text-decoration: none;
-  padding: 0.9rem 1rem;
+  padding: 0.75rem 0.9rem;
   border-radius: 6px;
   color: var(--text-secondary);
   font-weight: 500;
+  transition: all 0.2s ease;
 }
-.submenu-link:hover, .submenu-link.router-link-exact-active {
+.submenu-link:hover,
+.submenu-link.router-link-exact-active {
   color: var(--accent-color);
   background-color: var(--background-light);
+}
+
+/* cria uma "ponte" de hover de 10px para eliminar micro-gap */
+.menu-item-l1::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: -10px;
+  width: 10px;
+  height: 100%;
 }
 </style>
