@@ -9,9 +9,9 @@ import MinhaConta from '../views/MinhaConta.vue';
 import Clientes from '../views/cadastros/Clientes.vue';
 import Fornecedores from '../views/cadastros/Fornecedores.vue';
 import Categorias from '../views/cadastros/Categorias.vue';
-import Vendedores from '../views/cadastros/Vendedores.vue';
+import VendedoresLista from '../views/cadastros/VendedoresLista.vue';
 
-// Produtos wrapper + filhos
+// Produtos
 import Produtos from '../views/cadastros/Produtos.vue';
 import ProdutosLista from '../views/cadastros/ProdutosLista.vue';
 import ProdutoForm from '../views/cadastros/ProdutoForm.vue';
@@ -43,9 +43,10 @@ const routes = [
   // Cadastros
   { path: '/cadastros/clientes', name: 'clientes', component: Clientes },
   { path: '/cadastros/fornecedores', name: 'fornecedores', component: Fornecedores },
-  { path: '/cadastros/usuarios/novo', name: 'usuario-novo', component: UsuarioForm}
+  { path: '/cadastros/categorias', name: 'categorias', component: Categorias },
+  { path: '/cadastros/vendedores', name: 'vendedores', component: VendedoresLista },
 
-  // Produtos (wrapper com rotas filhas)
+
   {
     path: '/cadastros/produtos',
     component: Produtos,
@@ -68,9 +69,6 @@ const routes = [
       },
     ],
   },
-
-  { path: '/cadastros/categorias', name: 'categorias', component: Categorias },
-  { path: '/cadastros/vendedores', name: 'vendedores', component: Vendedores },
 
   // Suprimentos
   { path: '/suprimentos/estoque', name: 'estoque', component: Estoque },
