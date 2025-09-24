@@ -30,7 +30,6 @@
             <label>Tipo do Produto</label>
             <select v-model="produto.tipo">
               <option value="Simples">Simples</option>
-              <option value="Kit">Kit</option>
               <option value="Materia-prima">Matéria-prima</option>
             </select>
           </div>
