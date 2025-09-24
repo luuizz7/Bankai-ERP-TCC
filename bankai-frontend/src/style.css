@@ -2,14 +2,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  --background-dark: #1E1E2D;
-  --background-light: #2D2D44;
-  --sidebar-bg: #1B1B29;
+  --background-dark: #202020;
+  --background-light: #202020;
+  --sidebar-bg: #202020;
   --text-primary: #E0E0E5;
   --text-secondary: #A9A9B2;
-  --accent-color: #3699FF;
-  --accent-color-hover: #2b7cdb;
-  --border-color: #323248;
+  --accent-color: #db952b;
+  --accent-color-hover: #db952b;
+  --border-color: #b96f00a1;
   --success-color: #50CD89;
   --danger-color: #F64E60;
 }
@@ -35,9 +35,6 @@ a:hover {
   color: var(--accent-color);
 }
 
-/* ===============================
-   FORMULÁRIOS
-================================= */
 .form-group {
   margin-bottom: 1.25rem;
 }

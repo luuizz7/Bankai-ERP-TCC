@@ -1,8 +1,14 @@
 {
-  "dependencies": {
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.1",
-    "express": "^5.1.0",
-    "pg": "^8.16.3"
+  "name": "bankai-erp-tcc",
+  "version": "1.0.0",
+  "description": "Gerenciador para o frontend e backend do Bankai ERP",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix bankai-frontend\""
+  },
+  "author": "SeuNome",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   }
 }

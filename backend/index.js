@@ -15,7 +15,7 @@ const app = express();
 app.use(cors({ origin: 'http://localhost:5173' })); // porta do Vite
 app.use(express.json());
 
-app.get('/', (_req, res) => res.send('API do BankaiERP rodando 🚀'));
+app.get('/', (_req, res) => res.send('rodando'));
 
 // Cadastros
 app.use('/clientes', clientes);
@@ -45,4 +45,4 @@ app.use('/vendedores', vendedores);
 // app.use('/auth', auth);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`API do BankaiERP rodando na porta ${PORT} 🚀`));
+app.listen(PORT, () => console.log(`rodando ${PORT}`));
