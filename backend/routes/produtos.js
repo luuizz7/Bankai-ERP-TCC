@@ -111,14 +111,20 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/', async (req, res) => {
   try {
-    const { id } = req.params;
-    await pool.query('DELETE FROM produtos WHERE id = $1', [id]);
-    res.status(204).send();
+    const { ids } = req.body;
+    if (!ids || ids.length === 0) {
+      return res.status(400).json({ message: 'Nenhum ID de produto fornecido para exclusão.' });
+    }
+    
+    const query = 'DELETE FROM produtos WHERE id = ANY($1::int[])';
+    await pool.query(query, [ids]);
+    
+    res.status(200).json({ message: 'Produtos excluídos com sucesso.' });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Erro no servidor ao deletar produto');
+    res.status(500).send('Erro no servidor ao deletar produtos.');
   }
 });
 

@@ -15,6 +15,7 @@
         </div>
       </div>
       <div class="actions">
+        <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
         <button @click="router.back()" class="btn btn-secondary">Cancelar</button>
         <button class="btn btn-primary" @click="salvarProduto">Salvar Produto</button>
       </div>
@@ -77,26 +78,26 @@
           </div>
           <div class="form-group col-3">
             <label>Preço de Venda (R$)</label>
-            <input type="number" v-model="produto.precoVenda" />
+            <input type="number" v-model="produto.preco_venda" />
           </div>
           <div class="form-group col-3">
             <label>Preço Promocional (R$)</label>
-            <input type="number" v-model="produto.precoPromocional" />
+            <input type="number" v-model="produto.preco_promocional" />
           </div>
         </div>
 
         <div v-show="activeTab === 'dimensoes'" class="form-grid">
           <div class="form-group col-2">
             <label>Peso Líquido (kg)</label>
-            <input type="number" v-model="produto.pesoLiquido" />
+            <input type="number" v-model="produto.peso_liquido" />
           </div>
           <div class="form-group col-2">
             <label>Peso Bruto (kg)</label>
-            <input type="number" v-model="produto.pesoBruto" />
+            <input type="number" v-model="produto.peso_bruto" />
           </div>
           <div class="form-group col-3">
             <label>Tipo de Embalagem</label>
-            <select v-model="produto.tipoEmbalagem">
+            <select v-model="produto.tipo_embalagem">
               <option value="Pacote/Caixa">Pacote / Caixa</option>
               <option value="Envelope">Envelope</option>
             </select>
@@ -118,22 +119,22 @@
         <div v-show="activeTab === 'estoque'" class="form-grid">
           <div class="form-group col-2">
             <label>Controlar Estoque?</label>
-            <select v-model="produto.controlaEstoque">
+            <select v-model="produto.controla_estoque">
               <option :value="true">Sim</option>
               <option :value="false">Não</option>
             </select>
           </div>
           <div class="form-group col-2">
             <label>Estoque Atual</label>
-            <input type="number" v-model="produto.estoqueAtual" />
+            <input type="number" v-model="produto.estoque_atual" />
           </div>
           <div class="form-group col-2">
             <label>Estoque Mínimo</label>
-            <input type="number" v-model="produto.estoqueMinimo" />
+            <input type="number" v-model="produto.estoque_minimo" />
           </div>
           <div class="form-group col-2">
             <label>Estoque Máximo</label>
-            <input type="number" v-model="produto.estoqueMaximo" />
+            <input type="number" v-model="produto.estoque_maximo" />
           </div>
           <div class="form-group col-4">
             <label>Localização</label>
@@ -144,8 +145,8 @@
         <div v-show="activeTab === 'dadosComplementares'" class="form-grid">
           <div class="form-group col-4">
             <label>Categoria</label>
-            <select v-model="produto.categoria">
-              <option value="">Selecione</option>
+            <select v-model="produto.categoria_id">
+              <option :value="null">Selecione</option>
             </select>
           </div>
           <div class="form-group col-4">
@@ -187,6 +188,7 @@ import { useRoute, useRouter } from "vue-router";
 
 const route = useRoute();
 const router = useRouter();
+const errorMessage = ref("");
 
 const tabs = [
   { key: "dadosGerais", label: "Dados Gerais" },
@@ -244,11 +246,14 @@ onMounted(async () => {
       Object.assign(produto, data);
     } catch (err) {
       console.error("Erro ao carregar produto:", err);
+      errorMessage.value = "Não foi possível carregar os dados do produto.";
     }
   }
 });
 
 const salvarProduto = async () => {
+  errorMessage.value = "";
+  
   const isNew = !route.params.id || route.params.id === "novo";
   const url = isNew
     ? "http://localhost:5000/produtos"
@@ -264,13 +269,22 @@ const salvarProduto = async () => {
       body: JSON.stringify(produto),
     });
 
+    if (response.status === 409) {
+      const errorData = await response.json();
+      errorMessage.value = errorData.message;
+      return;
+    }
+
     if (!response.ok) {
-      throw new Error("Falha ao salvar o produto");
+      const errorData = await response.json();
+      errorMessage.value = errorData.message || "Falha ao salvar o produto. Verifique os campos.";
+      return;
     }
     
     router.push("/cadastros/produtos");
   } catch (err) {
     console.error("Erro ao salvar produto:", err);
+    errorMessage.value = "Ocorreu um erro de conexão. Tente novamente.";
   }
 };
 
@@ -281,12 +295,11 @@ const onFileChange = (e) => {
 </script>
 
 <style scoped>
-/* Cores diretas para evitar problemas com variáveis não carregadas */
 .produto-form {
   padding: 1.5rem;
   font-family: sans-serif;
-  color: #F9FAFB; /* Texto primário */
-  background-color: #202020; /* Fundo principal escuro */
+  color: #F9FAFB;
+  background-color: #202020;
   min-height: 100vh;
 }
 
@@ -295,7 +308,7 @@ const onFileChange = (e) => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
-  border-bottom: 2px solid #4c4c4c; /* Borda cor */
+  border-bottom: 2px solid #4c4c4c;
   padding-bottom: 1.5rem;
 }
 
@@ -309,7 +322,7 @@ const onFileChange = (e) => {
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  background-color: #F97316; /* Laranja principal */
+  background-color: #F97316;
   color: white;
   border: none;
   padding: 0.65rem 1.25rem;
@@ -320,49 +333,59 @@ const onFileChange = (e) => {
 }
 
 .btn-back-orange:hover {
-  background-color: #FB923C; /* Laranja hover */
+  background-color: #FB923C;
 }
 
 .back-icon {
   width: 20px;
   height: 20px;
-  fill: currentColor;
 }
 
 .breadcrumbs {
   display: flex;
   align-items: center;
   font-size: 0.875rem;
-  color: #9CA3AF; /* Texto secundário */
+  color:rgb(255, 255, 255);
 }
 
 .breadcrumbs a {
-  color: #9CA3AF; /* Texto secundário */
+  color:rgb(255, 255, 255);
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
 .breadcrumbs a:hover {
-  color: #F9FAFB; /* Texto primário */
+  color: #F9FAFB;
 }
 
 .breadcrumb-separator {
   margin: 0 0.5rem;
-  color: #9CA3AF; /* Texto secundário */
 }
 
 .active-breadcrumb {
-  color: #F9FAFB; /* Texto primário */
+  color: #F9FAFB;
   font-weight: 500;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .actions .btn {
   margin-left: 0.5rem;
 }
 
+.error-message {
+  color: #EF4444; /* Cor vermelha para erro */
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
 .card-form {
-  background: #202020; /* Fundo secundário escuro */
-  border: 1px solid #4c4c4c; /* Borda cor */
+  background: #202020;
+  border: 1px solid #4c4c4c;
   border-radius: 8px;
   padding: 1.5rem;
 }
@@ -371,25 +394,25 @@ const onFileChange = (e) => {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1rem;
-  border-bottom: 2px solid #4c4c4c; /* Borda cor */
+  border-bottom: 2px solid #4c4c4c;
 }
 
 .tabs button {
   padding: 1rem 1rem;
   border: none;
   border-bottom: 2px solid transparent;
-  margin-bottom: -2px; /* Compensa a borda inferior para ela se alinhar */
+  margin-bottom: -2px;
   border-radius: 0;
   cursor: pointer;
   background: transparent;
-  color: #F9FAFB; /* Texto primário */
+  color: #F9FAFB;
   font-weight: 600;
   transition: color 0.3s, border-bottom-color 0.3s;
 }
 
 .tabs button.active {
-  color: #F97316; /* Laranja principal */
-  border-bottom-color: #F97316; /* Laranja principal */
+  color: #F97316;
+  border-bottom-color: #F97316;
 }
 
 .tab-content {
@@ -410,7 +433,7 @@ const onFileChange = (e) => {
 .form-group label {
   margin-bottom: 0.5rem;
   font-weight: 500;
-  color: #D1D5DB; /* Um cinza mais claro para labels */
+  color: #D1D5DB;
   font-size: 0.875rem;
 }
 
@@ -418,18 +441,18 @@ const onFileChange = (e) => {
 .form-group select,
 .form-group textarea {
   padding: 0.75rem;
-  border: 1px solid #4c4c4c;
+  border: 2px solid #4c4c4c;
   border-radius: 6px;
-  background-color: #202020; /* Fundo principal escuro */
-  color: #F9FAFB; /* Texto primário */
+  background-color: #202020;
+  color: #F9FAFB;
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #F97316; /* Laranja principal */
-  box-shadow: 0 0 0 1px #F97316; /* Laranja principal */
+  border-color: #F97316;
+  box-shadow: 0 0 0 1px #F97316;
 }
 
 .preview-list {
@@ -455,8 +478,8 @@ const onFileChange = (e) => {
 
 .actions .btn-secondary {
   background-color: transparent;
-  border: 1px solid #4c4c4c;
-  color: #D1D5DB; /* Um cinza mais claro */
+  border: 1px solid #4B5563;
+  color: #D1D5DB;
   padding: 0.65rem 1.25rem;
   border-radius: 6px;
   font-weight: 500;
@@ -465,12 +488,12 @@ const onFileChange = (e) => {
 }
 
 .actions .btn-secondary:hover {
-  background-color: #202020; /* Borda cor */
-  color: #F9FAFB; /* Texto primário */
+  background-color: #202020;
+  color: #F9FAFB;
 }
 
 .actions .btn-primary {
-  background-color: #F97316; /* Laranja principal */
+  background-color: #F97316;
   color: white;
   border: none;
   padding: 0.65rem 1.25rem;
@@ -481,6 +504,6 @@ const onFileChange = (e) => {
 }
 
 .actions .btn-primary:hover {
-  background-color: #FB923C; /* Laranja hover */
+  background-color: #FB923C;
 }
 </style>

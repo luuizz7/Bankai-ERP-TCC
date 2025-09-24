@@ -21,12 +21,18 @@
           placeholder="Pesquisar por nome ou SKU..."
           class="search-input"
         />
+        <button v-if="selectedProducts.length > 0" @click="deleteSelectedProducts" class="btn btn-danger">
+          Excluir ({{ selectedProducts.length }})
+        </button>
       </div>
 
       <div class="card-body">
         <table class="table">
           <thead>
             <tr>
+              <th class="checkbox-cell">
+                <input type="checkbox" @change="selectAllProducts" :checked="isAllSelected" />
+              </th>
               <th>Foto</th>
               <th>Nome</th>
               <th>SKU</th>
@@ -36,13 +42,12 @@
           </thead>
           <tbody>
             <tr v-if="estaCarregando">
-              <td :colspan="5" class="empty-state">
+              <td :colspan="6" class="empty-state">
                 Carregando...
               </td>
             </tr>
             <tr v-else-if="!produtosFiltrados.length">
-              <td :colspan="5" class="empty-state">
-                Nenhum produto encontrado. Clique em "Novo Produto" para começar.
+              <td :colspan="6" class="empty-state">
               </td>
             </tr>
             <template v-else>
@@ -52,6 +57,9 @@
                 class="clickable-row"
                 @click="abrirProdutoComAnimacao(produto.id)"
               >
+                <td class="checkbox-cell" @click.stop>
+                  <input type="checkbox" :value="produto.id" v-model="selectedProducts" />
+                </td>
                 <td class="foto-cell">
                   <div v-if="produto.imagem" class="img-placeholder">
                     <img :src="produto.imagem" alt="Foto do produto" class="produto-foto-real" />
@@ -66,7 +74,7 @@
                 </td>
                 <td>{{ produto.nome }}</td>
                 <td>{{ produto.sku }}</td>
-                <td>R$ {{ produto.preco_venda ? produto.preco_venda.toFixed(2) : '0.00' }}</td>
+                <td>R$ {{ produto.preco_venda ? parseFloat(produto.preco_venda).toFixed(2) : '0.00' }}</td>
                 <td>{{ produto.estoque_atual }}</td>
               </tr>
             </template>
@@ -85,6 +93,11 @@ const router = useRouter();
 const filtro = ref("");
 const produtos = ref([]);
 const estaCarregando = ref(true);
+const selectedProducts = ref([]);
+
+const isAllSelected = computed(() => {
+  return produtosFiltrados.value.length > 0 && selectedProducts.value.length === produtosFiltrados.value.length;
+});
 
 const buscarProdutos = async () => {
   estaCarregando.value = true;
@@ -97,7 +110,7 @@ const buscarProdutos = async () => {
     produtos.value = data;
   } catch (err) {
     console.error(err);
-    produtos.value = []; // Limpa a lista em caso de erro
+    produtos.value = [];
   } finally {
     estaCarregando.value = false;
   }
@@ -114,6 +127,42 @@ const produtosFiltrados = computed(() => {
       (p.sku && p.sku.toLowerCase().includes(search))
   );
 });
+
+const selectAllProducts = (event) => {
+  if (event.target.checked) {
+    selectedProducts.value = produtosFiltrados.value.map(p => p.id);
+  } else {
+    selectedProducts.value = [];
+  }
+};
+
+const deleteSelectedProducts = async () => {
+  if (selectedProducts.value.length === 0) return;
+
+  const confirmDelete = confirm(`Tem certeza que deseja excluir ${selectedProducts.value.length} produto(s)?`);
+  if (!confirmDelete) return;
+
+  try {
+    const response = await fetch('http://localhost:5000/produtos', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ ids: selectedProducts.value }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Falha ao excluir produtos');
+    }
+    
+    selectedProducts.value = [];
+    await buscarProdutos();
+
+  } catch (err) {
+    console.error(err);
+    alert('Ocorreu um erro ao excluir os produtos.');
+  }
+};
 
 const abrirProdutoComAnimacao = (id) => {
   const cardBody = document.querySelector(".card-body");
@@ -159,6 +208,9 @@ h2 {
 .card-header {
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .search-input {
@@ -175,6 +227,21 @@ h2 {
 .search-input:focus {
   outline: none;
   border-color: var(--accent-color);
+}
+
+.btn-danger {
+  background-color: #EF4444;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-danger:hover {
+  background-color: #DC2626;
 }
 
 .card-body {
@@ -209,6 +276,11 @@ h2 {
   border-bottom: none;
 }
 
+.checkbox-cell {
+  width: 48px;
+  text-align: center;
+}
+
 .foto-cell {
   width: 72px;
   padding-top: 0.5rem;
@@ -226,7 +298,7 @@ h2 {
   justify-content: center;
   background-color: var(--background-dark);
   color: var(--text-secondary);
-  overflow: hidden; /* Para a imagem real se ajustar ao border-radius */
+  overflow: hidden;
 }
 
 .produto-foto-real {
