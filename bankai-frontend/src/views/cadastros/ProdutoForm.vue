@@ -183,6 +183,7 @@
 </template>
 
 <script setup>
+
 import { ref, reactive, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
@@ -226,6 +227,7 @@ const produto = reactive({
   marca: "",
   descricao: "",
   garantia: 0,
+  imagem: null
 });
 
 const previews = ref([]);
@@ -244,6 +246,9 @@ onMounted(async () => {
       if (!response.ok) throw new Error("Produto não encontrado");
       const data = await response.json();
       Object.assign(produto, data);
+      if (data.imagem) {
+        previews.value = [`http://localhost:5000/${data.imagem}`];
+      }
     } catch (err) {
       console.error("Erro ao carregar produto:", err);
       errorMessage.value = "Não foi possível carregar os dados do produto.";
@@ -253,6 +258,19 @@ onMounted(async () => {
 
 const salvarProduto = async () => {
   errorMessage.value = "";
+
+  const formData = new FormData();
+  for (const key in produto) {
+    if (produto[key] !== null && key !== 'imagem') {
+      formData.append(key, produto[key]);
+    }
+  }
+
+  if (imageFiles.value[0]) {
+    formData.append('imagem', imageFiles.value[0]);
+  } else if (produto.imagem) {
+    formData.append('imagem_existente', produto.imagem);
+  }
   
   const isNew = !route.params.id || route.params.id === "novo";
   const url = isNew
@@ -263,10 +281,7 @@ const salvarProduto = async () => {
   try {
     const response = await fetch(url, {
       method: method,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(produto),
+      body: formData,
     });
 
     if (response.status === 409) {
@@ -504,6 +519,6 @@ const onFileChange = (e) => {
 }
 
 .actions .btn-primary:hover {
-  background-color: #FB923C;
+  background-color: #F97316;
 }
 </style>

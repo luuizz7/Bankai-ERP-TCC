@@ -46,13 +46,14 @@
                 Carregando...
               </td>
             </tr>
-            <tr v-else-if="!produtosFiltrados.length">
+            <tr v-else-if="!produtos.length">
               <td :colspan="6" class="empty-state">
+                Nenhum produto encontrado. Clique em "Novo Produto" para começar.
               </td>
             </tr>
             <template v-else>
               <tr
-                v-for="produto in produtosFiltrados"
+                v-for="produto in produtos"
                 :key="produto.id"
                 class="clickable-row"
                 @click="abrirProdutoComAnimacao(produto.id)"
@@ -62,7 +63,7 @@
                 </td>
                 <td class="foto-cell">
                   <div v-if="produto.imagem" class="img-placeholder">
-                    <img :src="produto.imagem" alt="Foto do produto" class="produto-foto-real" />
+                    <img :src="`http://localhost:5000/${produto.imagem}`" alt="Foto do produto" class="produto-foto-real" />
                   </div>
                   <div v-else class="img-placeholder" role="img" aria-label="Sem foto do produto">
                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -86,7 +87,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
@@ -94,15 +95,22 @@ const filtro = ref("");
 const produtos = ref([]);
 const estaCarregando = ref(true);
 const selectedProducts = ref([]);
+let debounceTimer = null;
 
 const isAllSelected = computed(() => {
-  return produtosFiltrados.value.length > 0 && selectedProducts.value.length === produtosFiltrados.value.length;
+  return produtos.value.length > 0 && selectedProducts.value.length === produtos.value.length;
 });
 
-const buscarProdutos = async () => {
+const buscarProdutos = async (termoDeBusca = '') => {
   estaCarregando.value = true;
+  selectedProducts.value = [];
   try {
-    const response = await fetch('http://localhost:5000/produtos');
+    const url = new URL('http://localhost:5000/produtos');
+    if (termoDeBusca) {
+      url.searchParams.append('q', termoDeBusca);
+    }
+    
+    const response = await fetch(url);
     if (!response.ok) {
       throw new Error('Erro ao buscar produtos da API');
     }
@@ -116,21 +124,20 @@ const buscarProdutos = async () => {
   }
 };
 
-onMounted(buscarProdutos);
+onMounted(() => {
+  buscarProdutos();
+});
 
-const produtosFiltrados = computed(() => {
-  if (!filtro.value) return produtos.value;
-  const search = filtro.value.toLowerCase();
-  return produtos.value.filter(
-    (p) =>
-      p.nome.toLowerCase().includes(search) ||
-      (p.sku && p.sku.toLowerCase().includes(search))
-  );
+watch(filtro, (novoValor) => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    buscarProdutos(novoValor);
+  }, 500);
 });
 
 const selectAllProducts = (event) => {
   if (event.target.checked) {
-    selectedProducts.value = produtosFiltrados.value.map(p => p.id);
+    selectedProducts.value = produtos.value.map(p => p.id);
   } else {
     selectedProducts.value = [];
   }

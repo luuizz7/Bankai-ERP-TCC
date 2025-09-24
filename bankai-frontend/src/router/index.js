@@ -35,13 +35,15 @@ import Impostos from '../views/financas/Impostos.vue';
 import FolhaPagamento from '../views/financas/FolhaPagamento.vue';
 
 const routes = [
-  { path: '/', name: 'dashboard', component: Dashboard },
+  { path: '/', redirect: '/dashboard' },
+  { path: '/dashboard', name: 'dashboard', component: Dashboard },
   { path: '/agenda', name: 'agenda', component: Agenda },
   { path: '/minha-conta', name: 'minha-conta', component: MinhaConta },
 
   // Cadastros
   { path: '/cadastros/clientes', name: 'clientes', component: Clientes },
   { path: '/cadastros/fornecedores', name: 'fornecedores', component: Fornecedores },
+  { path: '/cadastros/usuarios/novo', name: 'usuario-novo', component: UsuarioForm}
 
   // Produtos (wrapper com rotas filhas)
   {

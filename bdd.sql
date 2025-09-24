@@ -1,3 +1,4 @@
+-- Criação das tabelas
 CREATE TABLE IF NOT EXISTS clientes (
   id SERIAL PRIMARY KEY,
   nome VARCHAR(100) NOT NULL,
@@ -111,6 +112,15 @@ CREATE TABLE IF NOT EXISTS caixa (
   descricao TEXT
 );
 
+CREATE TABLE IF NOT EXISTS usuarios (
+  id SERIAL PRIMARY KEY,
+  nome VARCHAR(100) NOT NULL,
+  email VARCHAR(100) NOT NULL UNIQUE,
+  senha VARCHAR(255) NOT NULL,
+  cargo VARCHAR(50) DEFAULT 'vendedor',
+  criado_em TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS contas_pagar (
   id SERIAL PRIMARY KEY,
   fornecedor_id INT REFERENCES fornecedores(id) ON DELETE SET NULL,
@@ -127,8 +137,15 @@ CREATE TABLE IF NOT EXISTS contas_receber (
   status VARCHAR(20) DEFAULT 'pendente' CHECK (status IN ('pendente','recebido'))
 );
 
+-- Inserir categorias, ignorando duplicados
+INSERT INTO categorias (nome) VALUES 
+  ('Camisetas'), 
+  ('Calçados'), 
+  ('Acessórios')
+ON CONFLICT (nome) DO NOTHING;
 
-INSERT INTO categorias (nome) VALUES ('Camisetas'), ('Calçados'), ('Acessórios');
+-- Inserir clientes, ignorando duplicados pelo email
 INSERT INTO clientes (nome, email, telefone) VALUES
-('Maria Silva', 'maria@email.com', '11999999999'),
-('João Souza', 'joao@email.com', '11988888888');
+  ('Maria Silva', 'maria@email.com', '11999999999'),
+  ('João Souza', 'joao@email.com', '11988888888')
+ON CONFLICT (email) DO NOTHING;
