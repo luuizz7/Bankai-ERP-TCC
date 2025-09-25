@@ -6,7 +6,7 @@
         <p class="text-secondary">Gerencie os usuários do sistema.</p>
       </div>
       <div class="actions">
-        <router-link to="/cadastros/usuarios/novo" class="btn btn-primary">
+        <router-link to="/cadastros/vendedores/novo" class="btn btn-primary">
           Novo Vendedor
         </router-link>
       </div>
@@ -32,7 +32,7 @@
             <tr v-else v-for="vendedor in vendedores" :key="vendedor.id">
               <td>{{ vendedor.nome }}</td>
               <td>{{ vendedor.email }}</td>
-              <td>{{ vendedor.cargo }}</td>
+              <td class="cargo-cell">{{ vendedor.cargo }}</td>
             </tr>
           </tbody>
         </table>
@@ -111,6 +111,9 @@ h2 {
   text-align: center;
   padding: 3rem;
   color: var(--text-secondary);
+}
+.cargo-cell {
+  text-transform: capitalize;
 }
 .btn-primary {
   background-color: var(--accent-color);
