@@ -1,171 +1,239 @@
 <template>
-  <div class="minha-conta">
+  <div class="configuracoes-pagina">
     <header class="page-header">
-      <div>
-        <h2>Minha Conta</h2>
-        <p class="text-secondary">Gerencie os detalhes do seu plano e uso do sistema.</p>
-      </div>
+      <h2>Configurações</h2>
+      <p class="text-secondary">Gerencie as informações e a aparência do seu sistema.</p>
     </header>
 
-    <div class="cards-container">
-      <div class="card">
-        <h3 class="card-title">Uso geral do sistema</h3>
-        <div class="stats-grid">
-          <div class="stat-item">
-            <span class="stat-label">Espaço para dados</span>
-            <span class="stat-value">{{ stats.espacoDados }}</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Espaço para anexos</span>
-            <span class="stat-value">{{ stats.espacoAnexos }}</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Usuários</span>
-            <span class="stat-value">{{ stats.usuarios.toString().padStart(2, '0') }}</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Produtos criados</span>
-            <span class="stat-value">{{ stats.totalProdutos }}</span>
-          </div>
-        </div>
-      </div>
+    <div class="tabs">
+        <button :class="{ active: activeTab === 'empresa' }" @click="activeTab = 'empresa'">Dados da Empresa</button>
+        <button :class="{ active: activeTab === 'meusdados' }" @click="activeTab = 'meusdados'">Meus Dados</button>
+    </div>
 
-      <div class="card">
-        <h3 class="card-title">Meu plano</h3>
-        <div class="stats-grid">
-          <div class="stat-item">
-            <span class="stat-label">Plano atual</span>
-            <span class="stat-value plan-name">Impulsione</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Valor/ano</span>
-            <span class="stat-value">R$ 3.108,00</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Periodicidade</span>
-            <span class="stat-value">Anual</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Situação</span>
-            <span class="stat-value status-active">Ativa</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Quantidade de acessos</span>
-            <span class="stat-value">10</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Último acesso</span>
-            <span class="stat-value">{{ new Date().toLocaleDateString('pt-BR') }}</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Último pagamento</span>
-            <span class="stat-value">-</span>
-          </div>
+    <div v-if="activeTab === 'empresa'" class="card">
+      <h3 class="card-title">Dados da Empresa</h3>
+      <div class="form-grid">
+        <div class="form-group col-6">
+          <label>Razão Social</label>
+          <input type="text" v-model="empresa.razao_social" placeholder="Nome completo da empresa">
+        </div>
+        <div class="form-group col-6">
+          <label>Nome Fantasia</label>
+          <input type="text" v-model="empresa.nome_fantasia" placeholder="Nome que será exibido no sistema">
+        </div>
+        <div class="form-group col-8">
+          <label>Endereço</label>
+          <input type="text" v-model="empresa.endereco" placeholder="Ex: Rua Assis Brasil">
+        </div>
+        <div class="form-group col-4">
+          <label>Número</label>
+          <input type="text" v-model="empresa.numero">
+        </div>
+        <div class="form-group col-4">
+          <label>Bairro</label>
+          <input type="text" v-model="empresa.bairro">
+        </div>
+        <div class="form-group col-4">
+          <label>Complemento</label>
+          <input type="text" v-model="empresa.complemento">
+        </div>
+        <div class="form-group col-4">
+          <label>Cidade</label>
+          <input type="text" v-model="empresa.cidade">
+        </div>
+        <div class="form-group col-4">
+          <label>CEP</label>
+          <input type="text" v-model="empresa.cep">
+        </div>
+        <div class="form-group col-4">
+          <label>UF</label>
+          <input type="text" v-model="empresa.uf">
+        </div>
+        <div class="form-group col-4">
+          <label>Telefone Fixo</label>
+          <input type="text" v-model="empresa.fone">
+        </div>
+        <div class="form-group col-4">
+          <label>Celular</label>
+          <input type="text" v-model="empresa.celular">
+        </div>
+        <div class="form-group col-4">
+          <label>E-mail</label>
+          <input type="email" v-model="empresa.email">
+        </div>
+        <div class="form-group col-6">
+          <label>Website</label>
+          <input type="text" v-model="empresa.website">
+        </div>
+        <div class="form-group col-6">
+          <label>Tipo da Pessoa</label>
+          <select v-model="empresa.tipo_pessoa">
+            <option>Pessoa Jurídica</option>
+            <option>Pessoa Física</option>
+          </select>
+        </div>
+        <div class="form-group col-6">
+          <label>CNPJ / CPF</label>
+          <input type="text" v-model="empresa.cnpj">
+        </div>
+        <div class="form-group col-6">
+          <label>Inscrição Estadual</label>
+          <input type="text" v-model="empresa.inscricao_estadual">
+        </div>
+        <div class="form-group col-12">
+          <label>Código de Regime Tributário</label>
+          <select v-model="empresa.regime_tributario">
+            <option>Simples nacional</option>
+            <option>Simples nacional - excesso de sublimite de receita bruta</option>
+            <option>Regime normal</option>
+            <option>Microempreendedor Individual (MEI)</option>
+          </select>
         </div>
       </div>
+      <div class="form-footer">
+        <button class="btn btn-primary" @click="salvarConfiguracoes">Salvar Dados da Empresa</button>
+      </div>
+    </div>
+
+    <div v-if="activeTab === 'meusdados'" class="card">
+        <h3 class="card-title">Meus Dados de Acesso</h3>
+        <p v-if="successMessage" class="success-message">{{ successMessage }}</p>
+        <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+        <div class="form-grid">
+            <div class="form-group col-12">
+                <label>Nome</label>
+                <input type="text" v-model="userData.nome" disabled>
+            </div>
+            <div class="form-group col-12">
+                <label>Email</label>
+                <input type="email" v-model="userData.email" disabled>
+            </div>
+             <div class="form-group col-12">
+                <label>Senha Atual</label>
+                <input type="password" v-model="userData.senhaAtual" placeholder="Digite sua senha atual" required>
+            </div>
+            <div class="form-group col-6">
+                <label>Nova Senha</label>
+                <input type="password" v-model="userData.novaSenha" placeholder="Deixe em branco para não alterar">
+            </div>
+            <div class="form-group col-6">
+                <label>Confirmar Nova Senha</label>
+                <input type="password" v-model="userData.confirmarSenha" placeholder="Repita a nova senha">
+            </div>
+        </div>
+        <div class="form-footer">
+            <button class="btn btn-primary" @click="salvarMeusDados">Alterar Senha</button>
+        </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { reactive, onMounted, ref } from 'vue';
+import { useAuth } from '../auth';
 
-const stats = ref({
-  totalProdutos: 0,
-  espacoDados: '0.0 MB',
-  espacoAnexos: '0.0 MB',
-  usuarios: 0,
+const empresa = reactive({});
+const auth = useAuth();
+const activeTab = ref('empresa');
+const successMessage = ref('');
+const errorMessage = ref('');
+
+const userData = reactive({
+    nome: '',
+    email: '',
+    senhaAtual: '',
+    novaSenha: '',
+    confirmarSenha: ''
 });
 
-const buscarEstatisticas = async () => {
+onMounted(async () => {
   try {
-    const response = await fetch('http://localhost:5000/stats');
-    if (!response.ok) {
-      throw new Error('Erro ao buscar estatísticas');
-    }
+    const response = await fetch('http://localhost:5000/configuracoes');
     const data = await response.json();
-    stats.value = data;
+    Object.assign(empresa, data);
+
+    if (auth.user.value) {
+        userData.nome = auth.user.value.nome;
+        userData.email = auth.user.value.email;
+    }
   } catch (err) {
     console.error(err);
   }
+});
+
+const salvarConfiguracoes = async () => {
+  try {
+    await fetch('http://localhost:5000/configuracoes', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(empresa)
+    });
+    alert('Configurações salvas com sucesso!');
+  } catch (err) {
+    alert('Erro ao salvar as configurações.');
+  }
 };
 
-onMounted(buscarEstatisticas);
+const salvarMeusDados = async () => {
+    successMessage.value = '';
+    errorMessage.value = '';
+
+    if (!userData.senhaAtual || !userData.novaSenha) {
+        errorMessage.value = "Por favor, preencha a senha atual e a nova senha.";
+        return;
+    }
+    if (userData.novaSenha !== userData.confirmarSenha) {
+        errorMessage.value = "As novas senhas não coincidem.";
+        return;
+    }
+
+    try {
+        const response = await fetch('http://localhost:5000/usuarios/alterar-senha', {
+            method: 'PUT',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${auth.token.value}`
+            },
+            body: JSON.stringify({
+                senhaAtual: userData.senhaAtual,
+                novaSenha: userData.novaSenha,
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Erro ao alterar a senha.');
+        }
+
+        successMessage.value = data.message;
+        userData.senhaAtual = '';
+        userData.novaSenha = '';
+        userData.confirmarSenha = '';
+
+    } catch (err) {
+        errorMessage.value = err.message;
+    }
+};
 </script>
 
 <style scoped>
-.minha-conta {
-  padding: 1.5rem;
-  font-family: sans-serif;
-  color: var(--text-primary);
-}
-
-.page-header {
-  margin-bottom: 2rem;
-}
-
-h2 {
-  font-size: 1.75rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.text-secondary {
-  color: var(--text-secondary);
-  margin-top: 0.25rem;
-}
-
-.cards-container {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-
-.card {
-  background-color: var(--background-light);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 1.5rem;
-}
-
-.card-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  padding-bottom: 1rem;
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border-color);
-  color: var(--text-primary);
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 2rem;
-}
-
-.stat-item {
-  display: flex;
-  flex-direction: column;
-}
-
-.stat-label {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  margin-bottom: 0.5rem;
-}
-
-.stat-value {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.plan-name {
-  color: var(--accent-color);
-  font-weight: 700;
-}
-
-.status-active {
-  color: #22C55E; /* Verde */
-}
+.configuracoes-pagina { padding: 1.5rem; }
+.page-header { margin-bottom: 2rem; }
+h2 { font-size: 1.75rem; font-weight: 600; color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); margin-top: 0.25rem; }
+.tabs { display: flex; gap: 0.5rem; margin-bottom: -1px; }
+.tabs button { padding: 0.75rem 1.5rem; border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0; cursor: pointer; background: transparent; color: var(--text-secondary); font-weight: 500; }
+.tabs button.active { background-color: var(--background-light); border-color: var(--border-color); color: var(--text-primary); }
+.card { background-color: var(--background-light); border: 1px solid var(--border-color); border-radius: 0 8px 8px 8px; padding: 1.5rem; }
+.card-title { font-size: 1.125rem; font-weight: 600; padding-bottom: 1rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); color: var(--text-primary); }
+.form-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 1.5rem; }
+.col-4 { grid-column: span 4; }
+.col-6 { grid-column: span 6; }
+.col-8 { grid-column: span 8; }
+.col-12 { grid-column: span 12; }
+.form-footer { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; }
+input[disabled] { background-color: var(--background-dark); cursor: not-allowed; opacity: 0.7; }
+.error-message { color: var(--danger-color); font-size: 0.875rem; margin-bottom: 1rem; }
+.success-message { color: var(--success-color); font-size: 0.875rem; margin-bottom: 1rem; }
 </style>

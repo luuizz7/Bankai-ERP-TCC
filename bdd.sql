@@ -1,4 +1,51 @@
--- Criação das tabelas
+CREATE TABLE IF NOT EXISTS caixa_status (
+    id INT PRIMARY KEY DEFAULT 1,
+    aberto BOOLEAN NOT NULL DEFAULT false,
+    usuario_abertura_id INT REFERENCES usuarios(id),
+    data_abertura TIMESTAMPTZ,
+    valor_inicial NUMERIC(10, 2),
+    usuario_fechamento_id INT REFERENCES usuarios(id),
+    data_fechamento TIMESTAMPTZ,
+    valor_final NUMERIC(10, 2)
+);
+
+-- Insere um registro inicial para o status do caixa, se ele não existir
+INSERT INTO caixa_status (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
+
+
+CREATE TABLE IF NOT EXISTS caixa_movimentacoes (
+    id SERIAL PRIMARY KEY,
+    tipo VARCHAR(20) NOT NULL CHECK (tipo IN ('abertura', 'reforco', 'sangria', 'venda', 'fechamento')),
+    valor NUMERIC(10, 2) NOT NULL,
+    descricao TEXT,
+    usuario_id INT NOT NULL REFERENCES usuarios(id),
+    data_movimentacao TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS empresa_config (
+  id INT PRIMARY KEY DEFAULT 1,
+  razao_social VARCHAR(255),
+  nome_fantasia VARCHAR(255),
+  endereco VARCHAR(255),
+  numero VARCHAR(20),
+  bairro VARCHAR(100),
+  complemento VARCHAR(100),
+  cidade VARCHAR(100),
+  cep VARCHAR(10),
+  uf VARCHAR(2),
+  fone VARCHAR(20),
+  celular VARCHAR(20),
+  email VARCHAR(100),
+  website VARCHAR(100),
+  tipo_pessoa VARCHAR(20),
+  cnpj VARCHAR(20),
+  inscricao_estadual VARCHAR(20),
+  regime_tributario VARCHAR(100)
+);
+
+-- Insere um registro padrão para a empresa (só haverá uma linha nesta tabela)
+INSERT INTO empresa_config (id, nome_fantasia) VALUES (1, 'BankaiERP') ON CONFLICT (id) DO NOTHING;
+
 CREATE TABLE IF NOT EXISTS clientes (
   id SERIAL PRIMARY KEY,
   nome VARCHAR(100) NOT NULL,
@@ -17,6 +64,23 @@ CREATE TABLE IF NOT EXISTS fornecedores (
 CREATE TABLE IF NOT EXISTS categorias (
   id SERIAL PRIMARY KEY,
   nome VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS vendedores (
+  id SERIAL PRIMARY KEY,
+  nome VARCHAR(100) NOT NULL,
+  email VARCHAR(100) UNIQUE,
+  telefone VARCHAR(20),
+  percentual_comissao NUMERIC(5, 2) DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS usuarios (
+  id SERIAL PRIMARY KEY,
+  nome VARCHAR(100) NOT NULL,
+  email VARCHAR(100) NOT NULL UNIQUE,
+  senha VARCHAR(255) NOT NULL,
+  cargo VARCHAR(50) DEFAULT 'vendedor',
+  criado_em TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS produtos (
@@ -46,14 +110,6 @@ CREATE TABLE IF NOT EXISTS produtos (
   garantia INT,
   categoria_id INT REFERENCES categorias(id) ON DELETE SET NULL,
   imagem TEXT
-);
-
-CREATE TABLE IF NOT EXISTS vendedores (
-  id SERIAL PRIMARY KEY,
-  nome VARCHAR(100) NOT NULL,
-  email VARCHAR(100) UNIQUE,
-  telefone VARCHAR(20),
-  salario NUMERIC(10, 2)
 );
 
 CREATE TABLE IF NOT EXISTS estoque (
@@ -112,15 +168,6 @@ CREATE TABLE IF NOT EXISTS caixa (
   descricao TEXT
 );
 
-CREATE TABLE IF NOT EXISTS usuarios (
-  id SERIAL PRIMARY KEY,
-  nome VARCHAR(100) NOT NULL,
-  email VARCHAR(100) NOT NULL UNIQUE,
-  senha VARCHAR(255) NOT NULL,
-  cargo VARCHAR(50) DEFAULT 'vendedor',
-  criado_em TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
 CREATE TABLE IF NOT EXISTS contas_pagar (
   id SERIAL PRIMARY KEY,
   fornecedor_id INT REFERENCES fornecedores(id) ON DELETE SET NULL,
@@ -137,15 +184,7 @@ CREATE TABLE IF NOT EXISTS contas_receber (
   status VARCHAR(20) DEFAULT 'pendente' CHECK (status IN ('pendente','recebido'))
 );
 
--- Inserir categorias, ignorando duplicados
-INSERT INTO categorias (nome) VALUES 
-  ('Camisetas'), 
-  ('Calçados'), 
-  ('Acessórios')
-ON CONFLICT (nome) DO NOTHING;
-
--- Inserir clientes, ignorando duplicados pelo email
-INSERT INTO clientes (nome, email, telefone) VALUES
-  ('Maria Silva', 'maria@email.com', '11999999999'),
-  ('João Souza', 'joao@email.com', '11988888888')
-ON CONFLICT (email) DO NOTHING;
+-- Insere dados de exemplo, ignorando duplicados
+INSERT INTO categorias (nome) VALUES ('Geral'), ('Camisetas'), ('Calçados'), ('Acessórios') ON CONFLICT (nome) DO NOTHING;
+INSERT INTO clientes (nome, email, telefone) VALUES ('Consumidor Final', 'consumidor@final.com', '000000000'), ('Maria Silva', 'maria@email.com', '11999999999'), ('João Souza', 'joao@email.com', '11988888888') ON CONFLICT (email) DO NOTHING;
+INSERT INTO vendedores (nome, email, telefone) VALUES ('Vendedor Padrão', 'vendedor@loja.com', '11987654321') ON CONFLICT (email) DO NOTHING;

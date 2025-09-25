@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import pool from '../db.js';
 import bcrypt from 'bcrypt';
+import authMiddleware from '../middleware/authMiddleware.js';
 
 const router = Router();
 const saltRounds = 10;
@@ -11,7 +12,7 @@ router.get('/', async (req, res) => {
     res.json(rows);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Erro no servidor ao buscar usuários');
+    res.status(500).send('Erro no servidor');
   }
 });
 
@@ -42,7 +43,32 @@ router.post('/', async (req, res) => {
 
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Erro no servidor ao criar usuário');
+    res.status(500).send('Erro no servidor');
+  }
+});
+
+router.put('/alterar-senha', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { senhaAtual, novaSenha } = req.body;
+
+    const userResult = await pool.query('SELECT senha FROM usuarios WHERE id = $1', [userId]);
+    const user = userResult.rows[0];
+
+    const isMatch = await bcrypt.compare(senhaAtual, user.senha);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'A senha atual está incorreta.' });
+    }
+
+    const hashedNovaSenha = await bcrypt.hash(novaSenha, saltRounds);
+
+    await pool.query('UPDATE usuarios SET senha = $1 WHERE id = $2', [hashedNovaSenha, userId]);
+
+    res.json({ message: 'Senha alterada com sucesso.' });
+
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Erro no servidor');
   }
 });
 

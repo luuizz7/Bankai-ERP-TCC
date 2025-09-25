@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import { useAuth } from '../auth';
 
+import Login from '../views/Login.vue';
 import Dashboard from '../views/Dashboard.vue';
 import Agenda from '../views/Agenda.vue';
 import MinhaConta from '../views/MinhaConta.vue';
@@ -30,75 +32,66 @@ import ContasReceber from '../views/financas/ContasReceber.vue';
 import Impostos from '../views/financas/Impostos.vue';
 import FolhaPagamento from '../views/financas/FolhaPagamento.vue';
 
+import UsuariosLista from '../views/configuracoes/UsuariosLista.vue';
+import UsuarioForm from '../views/configuracoes/UsuarioForm.vue';
+
+
 const routes = [
+  { path: '/login', name: 'login', component: Login, meta: { public: true } },
   { path: '/', redirect: '/dashboard' },
   { path: '/dashboard', name: 'dashboard', component: Dashboard },
   { path: '/agenda', name: 'agenda', component: Agenda },
-  { path: '/minha-conta', name: 'minha-conta', component: MinhaConta },
-
+  { path: '/configuracoes', name: 'configuracoes', component: MinhaConta },
   { path: '/cadastros/clientes', name: 'clientes', component: Clientes },
   { path: '/cadastros/fornecedores', name: 'fornecedores', component: Fornecedores },
   { path: '/cadastros/categorias', name: 'categorias', component: Categorias },
-  
   {
     path: '/cadastros/vendedores',
     component: Vendedores,
     children: [
-      {
-        path: '',
-        name: 'vendedores-lista',
-        component: VendedoresLista,
-      },
-      {
-        path: 'novo',
-        name: 'vendedor-novo',
-        component: VendedorForm,
-      },
+      { path: '', name: 'vendedores-lista', component: VendedoresLista, },
+      { path: 'novo', name: 'vendedor-novo', component: VendedorForm, },
     ],
   },
-  
   {
     path: '/cadastros/produtos',
     component: Produtos,
     children: [
-      {
-        path: '',
-        name: 'produtos-lista',
-        component: ProdutosLista,
-      },
-      {
-        path: 'novo',
-        name: 'produto-novo',
-        component: ProdutoForm,
-      },
-      {
-        path: 'editar/:id',
-        name: 'produto-editar',
-        component: ProdutoForm,
-        props: true,
-      },
+      { path: '', name: 'produtos-lista', component: ProdutosLista, },
+      { path: 'novo', name: 'produto-novo', component: ProdutoForm, },
+      { path: 'editar/:id', name: 'produto-editar', component: ProdutoForm, props: true, },
     ],
   },
-
   { path: '/suprimentos/estoque', name: 'estoque', component: Estoque },
   { path: '/suprimentos/ordens-compra', name: 'ordens-compra', component: OrdensCompra },
   { path: '/suprimentos/notas-entrada', name: 'notas-entrada', component: NotasEntrada },
   { path: '/suprimentos/necessidade-compra', name: 'necessidade-compra', component: NecessidadeCompra },
-
   { path: '/vendas/pdv', name: 'pdv', component: PDV },
   { path: '/vendas/orcamentos', name: 'orcamentos', component: Orcamentos },
   { path: '/vendas/pedidos-venda', name: 'pedidos-venda', component: PedidosVenda },
-
   { path: '/financas/caixa', name: 'caixa', component: Caixa },
   { path: '/financas/contas-pagar', name: 'contas-pagar', component: ContasPagar },
   { path: '/financas/contas-receber', name: 'contas-receber', component: ContasReceber },
   { path: '/financas/impostos', name: 'impostos', component: Impostos },
   { path: '/financas/folha-pagamento', name: 'folha-pagamento', component: FolhaPagamento },
+  { path: '/configuracoes/usuarios', name: 'usuarios-lista', component: UsuariosLista },
+  { path: '/configuracoes/usuarios/novo', name: 'usuario-novo', component: UsuarioForm },
 ];
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
+});
+
+router.beforeEach((to, from, next) => {
+  const auth = useAuth();
+  const isPublic = to.matched.some(record => record.meta.public);
+
+  if (!isPublic && !auth.isAuthenticated.value) {
+    next({ name: 'login' });
+  } else {
+    next();
+  }
 });
 
 export default router;
