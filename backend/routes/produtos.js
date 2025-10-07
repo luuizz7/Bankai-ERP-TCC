@@ -2,6 +2,7 @@ import { Router } from 'express';
 import pool from '../db.js';
 import multer from 'multer';
 import path from 'path';
+import authMiddleware from '../middleware/authMiddleware.js';
 
 const router = Router();
 
@@ -16,6 +17,8 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+// ROTA DE LISTAGEM DE PRODUTOS (PÚBLICA)
+// O authMiddleware foi REMOVIDO daqui para a lista carregar corretamente.
 router.get('/', async (req, res) => {
   try {
     const { q } = req.query;
@@ -34,10 +37,11 @@ router.get('/', async (req, res) => {
     res.json(rows);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Erro no servidor ao buscar produtos');
+    res.status(500).json({ message: 'Erro no servidor ao buscar produtos' });
   }
 });
 
+// ROTA PARA BUSCAR UM PRODUTO ESPECÍFICO (PÚBLICA)
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -49,11 +53,13 @@ router.get('/:id', async (req, res) => {
     res.json(rows[0]);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Erro no servidor ao buscar produto por ID');
+    res.status(500).json({ message: 'Erro no servidor ao buscar produto por ID' });
   }
 });
 
-router.post('/', upload.single('imagem'), async (req, res) => {
+// ROTA PARA CRIAR UM NOVO PRODUTO (PROTEGIDA)
+// O authMiddleware foi ADICIONADO aqui.
+router.post('/', authMiddleware, upload.single('imagem'), async (req, res) => {
   try {
     const {
       nome, sku, preco_venda, estoque_atual, tipo, gtin, origem, ncm,
@@ -90,13 +96,16 @@ router.post('/', upload.single('imagem'), async (req, res) => {
 
     const { rows } = await pool.query(query, values);
     res.status(201).json(rows[0]);
-  } catch (err) {
+  } catch (err)
+ {
     console.error(err.message);
-    res.status(500).send('Erro no servidor ao criar produto');
+    res.status(500).json({ message: 'Erro no servidor ao criar produto' });
   }
 });
 
-router.put('/:id', upload.single('imagem'), async (req, res) => {
+// ROTA PARA ATUALIZAR UM PRODUTO (PROTEGIDA)
+// O authMiddleware foi ADICIONADO aqui.
+router.put('/:id', authMiddleware, upload.single('imagem'), async (req, res) => {
   try {
     const { id } = req.params;
     const {
@@ -136,11 +145,13 @@ router.put('/:id', upload.single('imagem'), async (req, res) => {
     res.json(rows[0]);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Erro no servidor ao atualizar produto');
+    res.status(500).json({ message: 'Erro no servidor ao atualizar produto' });
   }
 });
 
-router.delete('/', async (req, res) => {
+// ROTA PARA DELETAR PRODUTOS (PROTEGIDA)
+// O authMiddleware foi ADICIONADO aqui.
+router.delete('/', authMiddleware, async (req, res) => {
   try {
     const { ids } = req.body;
     if (!ids || ids.length === 0) {
@@ -153,7 +164,7 @@ router.delete('/', async (req, res) => {
     res.status(200).json({ message: 'Produtos excluídos com sucesso.' });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Erro no servidor ao deletar produtos.');
+    res.status(500).json({ message: 'Erro no servidor ao deletar produtos.' });
   }
 });
 

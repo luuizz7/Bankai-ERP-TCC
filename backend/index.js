@@ -4,40 +4,58 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+// Carrega variáveis de ambiente do arquivo .env
 dotenv.config();
 
-import auth from './routes/auth.js';
-import caixa from './routes/caixa.js';
-import stats from './routes/stats.js';
-import usuarios from './routes/usuarios.js';
-import clientes from './routes/clientes.js';
-import fornecedores from './routes/fornecedores.js';
-import categorias from './routes/categorias.js';
-import produtos from './routes/produtos.js';
-import vendedores from './routes/vendedores.js';
-import configuracoes from './routes/configuracoes.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Importação de todas as suas rotas
+import authRouter from './routes/auth.js';
+import categoriasRouter from './routes/categorias.js';
+import clientesRouter from './routes/clientes.js';
+import configuracoesRouter from './routes/configuracoes.js';
+import contasPagarRouter from './routes/contasPagar.js';
+import contasReceberRouter from './routes/contasReceber.js';
+import estoqueRouter from './routes/estoque.js';
+import fornecedoresRouter from './routes/fornecedores.js';
+import produtosRouter from './routes/produtos.js';
+import usuariosRouter from './routes/usuarios.js';
+import vendedoresRouter from './routes/vendedores.js';
+import pedidosVendaRouter from './routes/pedidosVenda.js'; // <-- Estava faltando
+import caixaRouter from './routes/caixa.js';             // <-- Estava faltando
 
 const app = express();
-app.use(cors({ origin: 'http://localhost:5173' }));
-app.use(express.json());
+const port = process.env.PORT || 5000;
 
+// Configuração para servir arquivos estáticos (imagens dos produtos)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-app.get('/', (_req, res) => res.send('rodando'));
 
-app.use('/auth', auth);
-app.use('/caixa', caixa);
-app.use('/stats', stats);
-app.use('/usuarios', usuarios);
-app.use('/clientes', clientes);
-app.use('/fornecedores', fornecedores);
-app.use('/categorias', categorias);
-app.use('/produtos', produtos);
-app.use('/vendedores', vendedores);
-app.use('/configuracoes', configuracoes);
+// Middlewares essenciais
+app.use(cors());          // Habilita o CORS para permitir a comunicação entre frontend e backend
+app.use(express.json());  // Habilita o parsing de JSON no corpo das requisições
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`rodando ${PORT}`));
+// ==========================================================
+// REGISTRO DAS ROTAS DA API
+// ==========================================================
+// A ordem aqui não importa, mas é bom manter organizado
+app.use('/api/auth', authRouter);
+app.use('/api/categorias', categoriasRouter);
+app.use('/api/clientes', clientesRouter);
+app.use('/api/configuracoes', configuracoesRouter);
+app.use('/api/contas-pagar', contasPagarRouter);
+app.use('/api/contas-receber', contasReceberRouter);
+app.use('/api/estoque', estoqueRouter);
+app.use('/api/fornecedores', fornecedoresRouter);
+app.use('/api/produtos', produtosRouter);
+app.use('/api/usuarios', usuariosRouter);
+app.use('/api/vendedores', vendedoresRouter);
+app.use('/api/pedidos-venda', pedidosVendaRouter); // <-- Rota de pedidos de venda registrada
+app.use('/api/caixa', caixaRouter);             // <-- Rota do caixa registrada
+
+// ==========================================================
+
+// Inicia o servidor
+app.listen(port, () => {
+  console.log(`✅ Servidor backend rodando na porta ${port}`);
+});

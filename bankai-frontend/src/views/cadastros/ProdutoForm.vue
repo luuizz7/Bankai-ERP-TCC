@@ -80,10 +80,6 @@
             <label>Preço de Venda (R$)</label>
             <input type="number" v-model="produto.preco_venda" />
           </div>
-          <div class="form-group col-3">
-            <label>Preço Promocional (R$)</label>
-            <input type="number" v-model="produto.preco_promocional" />
-          </div>
         </div>
 
         <div v-show="activeTab === 'dimensoes'" class="form-grid">
@@ -183,12 +179,13 @@
 </template>
 
 <script setup>
-
 import { ref, reactive, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useAuth } from '../../auth'; // <-- 1. IMPORTAR O useAuth
 
 const route = useRoute();
 const router = useRouter();
+const auth = useAuth(); // <-- 2. INICIAR O auth
 const errorMessage = ref("");
 
 const tabs = [
@@ -203,31 +200,11 @@ const tabs = [
 const activeTab = ref("dadosGerais");
 
 const produto = reactive({
-  tipo: "Simples",
-  nome: "",
-  sku: "",
-  gtin: "",
-  origem: "0",
-  ncm: "",
-  cest: "",
-  preco_venda: 0,
-  preco_promocional: 0,
-  peso_liquido: 0,
-  peso_bruto: 0,
-  tipo_embalagem: "Pacote/Caixa",
-  largura: 0,
-  altura: 0,
-  comprimento: 0,
-  controla_estoque: false,
-  estoque_atual: 0,
-  estoque_minimo: 0,
-  estoque_maximo: 0,
-  localizacao: "",
-  categoria_id: null,
-  marca: "",
-  descricao: "",
-  garantia: 0,
-  imagem: null
+  tipo: "Simples", nome: "", sku: "", gtin: "", origem: "0", ncm: "", cest: "",
+  preco_venda: 0, preco_promocional: 0, peso_liquido: 0, peso_bruto: 0,
+  tipo_embalagem: "Pacote/Caixa", largura: 0, altura: 0, comprimento: 0,
+  controla_estoque: false, estoque_atual: 0, estoque_minimo: 0, estoque_maximo: 0,
+  localizacao: "", categoria_id: null, marca: "", descricao: "", garantia: 0, imagem: null
 });
 
 const previews = ref([]);
@@ -240,9 +217,9 @@ const formTitle = computed(() =>
 );
 
 onMounted(async () => {
-  if (route.params.id && route.params.id !== "novo") {
+  if (route.params.id && route.params.id !== "novo" && route.params.id !== 'editar') {
     try {
-      const response = await fetch(`http://localhost:5000/produtos/${route.params.id}`);
+      const response = await fetch(`http://localhost:5000/api/produtos/${route.params.id}`); // <-- CORRIGIDO: Adicionado /api/
       if (!response.ok) throw new Error("Produto não encontrado");
       const data = await response.json();
       Object.assign(produto, data);
@@ -274,25 +251,23 @@ const salvarProduto = async () => {
   
   const isNew = !route.params.id || route.params.id === "novo";
   const url = isNew
-    ? "http://localhost:5000/produtos"
-    : `http://localhost:5000/produtos/${route.params.id}`;
+    ? "http://localhost:5000/api/produtos" // <-- CORRIGIDO: Adicionado /api/
+    : `http://localhost:5000/api/produtos/${route.params.id}`; // <-- CORRIGIDO: Adicionado /api/
   const method = isNew ? "POST" : "PUT";
 
   try {
+    // v--- 3. CORREÇÃO PRINCIPAL AQUI ---v
     const response = await fetch(url, {
       method: method,
+      headers: {
+        'Authorization': `Bearer ${auth.token.value}` // <-- ADICIONADO HEADER DE AUTENTICAÇÃO
+      },
       body: formData,
     });
 
-    if (response.status === 409) {
-      const errorData = await response.json();
-      errorMessage.value = errorData.message;
-      return;
-    }
-
     if (!response.ok) {
       const errorData = await response.json();
-      errorMessage.value = errorData.message || "Falha ao salvar o produto. Verifique os campos.";
+      errorMessage.value = errorData.message || `Falha ao salvar o produto (${response.status}).`;
       return;
     }
     

@@ -89,8 +89,10 @@
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
+import { useAuth } from '../../auth'; // <-- 1. IMPORTAR O useAuth
 
 const router = useRouter();
+const auth = useAuth(); // <-- 2. INICIAR O auth
 const filtro = ref("");
 const produtos = ref([]);
 const estaCarregando = ref(true);
@@ -105,11 +107,12 @@ const buscarProdutos = async (termoDeBusca = '') => {
   estaCarregando.value = true;
   selectedProducts.value = [];
   try {
-    const url = new URL('http://localhost:5000/produtos');
+    const url = new URL('http://localhost:5000/api/produtos'); // <-- CORRIGIDO: Adicionado /api/
     if (termoDeBusca) {
       url.searchParams.append('q', termoDeBusca);
     }
     
+    // A busca de produtos não precisa de token, pois deixamos a rota pública
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error('Erro ao buscar produtos da API');
@@ -150,10 +153,12 @@ const deleteSelectedProducts = async () => {
   if (!confirmDelete) return;
 
   try {
-    const response = await fetch('http://localhost:5000/produtos', {
+    // v--- 3. CORREÇÃO PRINCIPAL AQUI ---v
+    const response = await fetch('http://localhost:5000/api/produtos', { // <-- CORRIGIDO: Adicionado /api/
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${auth.token.value}` // <-- ADICIONADO HEADER DE AUTENTICAÇÃO
       },
       body: JSON.stringify({ ids: selectedProducts.value }),
     });

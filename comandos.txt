@@ -1,0 +1,5 @@
+rodar comando (na pasta raiz)
+npm run dev
+
+registrar a senha
+node seed.js
