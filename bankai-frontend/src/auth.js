@@ -13,7 +13,8 @@ export function useAuth() {
   const login = async (email, password) => {
     errorMessage.value = '';
     try {
-      const response = await fetch('http://localhost:5000/auth/login', {
+      // A CORREÇÃO ESTÁ NESTA LINHA:
+      const response = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, senha: password }),

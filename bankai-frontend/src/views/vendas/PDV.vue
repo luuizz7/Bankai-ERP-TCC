@@ -24,7 +24,7 @@
       <main class="pdv-main-content">
         <header class="main-header">
             <div class="search-container">
-                <input type="text" v-model="termoBuscaProduto" placeholder="Pesquise por descrição, código (SKU) ou GTIN" class="search-input"/>
+                <input type="text" v-model="termoBuscaProduto" placeholder="Pesquise por descrição ou código (SKU)" class="search-input"/>
                 <div v-if="resultadosBusca.length > 0" class="search-results">
                     <div v-for="produto in resultadosBusca" :key="produto.id" class="result-item" @click="adicionarProdutoAoCarrinho(produto)">
                     {{ produto.nome }} - <strong>{{ formatCurrency(produto.preco_venda) }}</strong>

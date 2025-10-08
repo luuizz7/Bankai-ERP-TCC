@@ -124,14 +124,6 @@
             <label>Estoque Atual</label>
             <input type="number" v-model="produto.estoque_atual" />
           </div>
-          <div class="form-group col-2">
-            <label>Estoque Mínimo</label>
-            <input type="number" v-model="produto.estoque_minimo" />
-          </div>
-          <div class="form-group col-2">
-            <label>Estoque Máximo</label>
-            <input type="number" v-model="produto.estoque_maximo" />
-          </div>
           <div class="form-group col-4">
             <label>Localização</label>
             <input type="text" v-model="produto.localizacao" />
