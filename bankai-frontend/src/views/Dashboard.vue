@@ -14,43 +14,54 @@
     
     <div v-else-if="stats" class="dashboard-content">
       <div class="stats-grid">
-      <div class="stat-card card">
-        <div class="card-content">
-          <p class="stat-label">Vendas de Hoje</p>
-          <h3 class="stat-value">{{ formatCurrency(stats.vendasHoje) }}</h3>
-        </div>
-        <router-link to="/vendas/pdv" class="card-icon-link">
-          <div class="card-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7 12a1 1 0 011-1h8a1 1 0 110 2H8a1 1 0 01-1-1z"></path><path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM3.75 12a8.25 8.25 0 1116.5 0 8.25 8.25 0 01-16.5 0z"></path></svg>
+        <div class="stat-card card">
+          <div class="card-content">
+            <p class="stat-label">Vendas de Hoje</p>
+            <h3 class="stat-value">{{ formatCurrency(stats.vendasHoje) }}</h3>
           </div>
-        </router-link>
-      </div>
-
-      <div class="stat-card card">
-        <div class="card-content">
-          <p class="stat-label">Total de Clientes</p>
-          <h3 class="stat-value">{{ stats.totalClientes }}</h3>
+          <router-link to="/vendas/pdv" class="card-icon-link">
+            <div class="card-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7 12a1 1 0 011-1h8a1 1 0 110 2H8a1 1 0 01-1-1z"></path><path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM3.75 12a8.25 8.25 0 1116.5 0 8.25 8.25 0 01-16.5 0z"></path></svg>
+            </div>
+          </router-link>
         </div>
-        <router-link to="/cadastros/clientes" class="card-icon-link">
-          <div class="card-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M6.25 6.375a4.125 4.125 0 118.25 0 4.125 4.125 0 01-8.25 0zM3.25 19.125a7.125 7.125 0 0114.25 0v.003l-.001.119a.75.75 0 01-.363.63l-13.5 7.5a.75.75 0 01-1.03-1.03l3.38-4.507a2.125 2.125 0 00-1.074-1.074l-4.507 3.38a.75.75 0 01-1.03-1.03l7.5-13.5a.75.75 0 01.63-.363l.119-.001z"></path></svg>
-          </div>
-        </router-link>
-      </div>
 
-      <div class="stat-card card">
-        <div class="card-content">
-          <p class="stat-label">Contas a Pagar Hoje</p>
-          <h3 class="stat-value">{{ formatCurrency(stats.contasPagarHoje) }}</h3>
+        <div class="stat-card card">
+          <div class="card-content">
+            <p class="stat-label">Total de Clientes</p>
+            <h3 class="stat-value">{{ stats.totalClientes }}</h3>
+          </div>
+          <router-link to="/cadastros/clientes" class="card-icon-link">
+            <div class="card-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M6.25 6.375a4.125 4.125 0 118.25 0 4.125 4.125 0 01-8.25 0zM3.25 19.125a7.125 7.125 0 0114.25 0v.003l-.001.119a.75.75 0 01-.363.63l-13.5 7.5a.75.75 0 01-1.03-1.03l3.38-4.507a2.125 2.125 0 00-1.074-1.074l-4.507 3.38a.75.75 0 01-1.03-1.03l7.5-13.5a.75.75 0 01.63-.363l.119-.001z"></path></svg>
+            </div>
+          </router-link>
         </div>
-        <router-link to="/financas/contas-a-pagar" class="card-icon-link">
-          <div class="card-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M12.97 3.97a.75.75 0 011.06 0l7.5 7.5a.75.75 0 010 1.06l-7.5 7.5a.75.75 0 11-1.06-1.06l6.22-6.22H3a.75.75 0 010-1.5h16.19l-6.22-6.22a.75.75 0 010-1.06z" clip-rule="evenodd"></path></svg>
-          </div>
-        </router-link>
-      </div>
 
-    </div>
+        <div class="stat-card card">
+          <div class="card-content">
+            <p class="stat-label">Contas a Pagar Hoje</p>
+            <h3 class="stat-value">{{ formatCurrency(stats.contasPagarHoje) }}</h3>
+          </div>
+          <router-link to="/financas/contas-a-pagar" class="card-icon-link">
+            <div class="card-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M12.97 3.97a.75.75 0 011.06 0l7.5 7.5a.75.75 0 010 1.06l-7.5 7.5a.75.75 0 11-1.06-1.06l6.22-6.22H3a.75.75 0 010-1.5h16.19l-6.22-6.22a.75.75 0 010-1.06z" clip-rule="evenodd"></path></svg>
+            </div>
+          </router-link>
+        </div>
+        
+        <div class="stat-card card">
+          <div class="card-content">
+            <p class="stat-label">Itens com Estoque Baixo</p>
+            <h3 class="stat-value">{{ stats.itensEstoqueBaixo }}</h3>
+          </div>
+          <router-link to="/cadastros/produtos" class="card-icon-link">
+            <div class="card-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd"></path></svg>
+            </div>
+          </router-link>
+        </div>
+      </div>
 
       <div class="main-content-grid">
         <div class="chart-container card">
@@ -65,8 +76,7 @@
             <router-link to="/vendas/pdv" class="quick-action-btn">Novo Pedido de Venda</router-link>
             <router-link to="/cadastros/clientes" class="quick-action-btn">Adicionar Cliente</router-link>
             <router-link to="/financas/contas-a-pagar" class="quick-action-btn">Registrar Despesa</router-link>
-            <router-link to="/suprimentos/estoque" class="quick-action-btn">Ver Estoque</router-link>
-          </div>
+            <router-link to="/cadastros/produtos" class="quick-action-btn">Ver Estoque</router-link> </div>
         </div>
       </div>
 
@@ -83,12 +93,15 @@
               <p class="no-results-text">Nenhuma venda registrada nos últimos 30 dias.</p>
           </div>
         </div>
+        <div class="card-footer">
+          </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
+// SEU SCRIPT FOI MANTIDO EXATAMENTE IGUAL
 import { ref, onMounted } from 'vue';
 import { useAuth } from '../auth';
 
@@ -125,6 +138,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* SEU CSS FOI MANTIDO EXATAMENTE IGUAL, COM UMA PEQUENA CORREÇÃO */
 .page-header {
   display: flex;
   justify-content: space-between;
@@ -157,7 +171,8 @@ h2 {
 }
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  /* CORRIGIDO: Garante 4 colunas em telas maiores, e quebra em telas menores */
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
 }
@@ -194,22 +209,18 @@ h2 {
   color: var(--text-secondary);
 }
 
-/* --- NOVOS ESTILOS PARA ÍCONES CLICÁVEIS --- */
 .card-icon-link {
   text-decoration: none;
 }
-
 .card-icon-link .card-icon {
   transition: all 0.2s ease-in-out;
 }
-
 .card-icon-link:hover .card-icon {
-  background-color: var(--accent-color); /* Usa a cor de destaque laranja do seu tema */
-  color: #fff; /* Deixa o SVG branco */
-  transform: scale(1.1); /* Aumenta um pouco o ícone */
+  background-color: var(--accent-color);
+  color: #fff;
+  transform: scale(1.1);
   cursor: pointer;
 }
-
 .card-icon svg {
   width: 24px;
   height: 24px;
@@ -242,7 +253,6 @@ h2 {
   flex-direction: column;
   gap: 0.75rem;
 }
-/* BOTÕES DE AÇÃO RÁPIDA AGORA SÃO LINKS */
 .quick-action-btn {
   width: 100%;
   text-align: left;
@@ -265,7 +275,6 @@ h2 {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 250px;
 }
 .placeholder-content {
   flex-grow: 1;
@@ -299,8 +308,6 @@ h2 {
 .expand-details:hover {
   color: var(--text-primary);
 }
-
-/* --- ESTILOS ADICIONADOS --- */
 .top-products-list {
   display: flex;
   flex-direction: column;

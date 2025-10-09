@@ -1,10 +1,12 @@
+-- ========= TABELAS PRINCIPAIS (SEM DEPENDÊNCIAS) =========
+
 CREATE TABLE IF NOT EXISTS usuarios (
   id SERIAL PRIMARY KEY,
   nome VARCHAR(100) NOT NULL,
   email VARCHAR(100) NOT NULL UNIQUE,
   senha VARCHAR(255) NOT NULL,
   cargo VARCHAR(50) DEFAULT 'vendedor',
-  criado_em TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  criado_em TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS empresa_config (
@@ -32,7 +34,8 @@ CREATE TABLE IF NOT EXISTS clientes (
   id SERIAL PRIMARY KEY,
   nome VARCHAR(100) NOT NULL,
   email VARCHAR(100) UNIQUE,
-  telefone VARCHAR(20)
+  telefone VARCHAR(20),
+  criado_em TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS fornecedores (
@@ -45,7 +48,8 @@ CREATE TABLE IF NOT EXISTS fornecedores (
 
 CREATE TABLE IF NOT EXISTS categorias (
   id SERIAL PRIMARY KEY,
-  nome VARCHAR(50) NOT NULL UNIQUE
+  nome VARCHAR(50) NOT NULL UNIQUE,
+  categoria_pai_id INT REFERENCES categorias(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS vendedores (
@@ -56,13 +60,7 @@ CREATE TABLE IF NOT EXISTS vendedores (
   percentual_comissao NUMERIC(5, 2) DEFAULT 0
 );
 
-CREATE TABLE IF NOT EXISTS caixa (
-  id SERIAL PRIMARY KEY,
-  data_movimento TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  tipo_movimento VARCHAR(20) NOT NULL CHECK (tipo_movimento IN ('entrada','saida')),
-  valor NUMERIC(10, 2) NOT NULL,
-  descricao TEXT
-);
+-- ========= TABELAS DE CAIXA E FINANCEIRO =========
 
 CREATE TABLE IF NOT EXISTS caixa_status (
     id INT PRIMARY KEY DEFAULT 1,
@@ -84,6 +82,25 @@ CREATE TABLE IF NOT EXISTS caixa_movimentacoes (
     data_movimentacao TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS contas_pagar (
+  id SERIAL PRIMARY KEY,
+  fornecedor_id INT REFERENCES fornecedores(id) ON DELETE SET NULL,
+  data_vencimento DATE NOT NULL,
+  valor NUMERIC(10, 2) NOT NULL,
+  status VARCHAR(20) DEFAULT 'pendente' CHECK (status IN ('pendente','pago'))
+);
+
+CREATE TABLE IF NOT EXISTS contas_receber (
+  id SERIAL PRIMARY KEY,
+  cliente_id INT REFERENCES clientes(id) ON DELETE SET NULL,
+  data_vencimento DATE NOT NULL,
+  valor NUMERIC(10, 2) NOT NULL,
+  status VARCHAR(20) DEFAULT 'pendente' CHECK (status IN ('pendente','recebido'))
+);
+
+
+-- ========= TABELAS DE PRODUTOS E ESTOQUE =========
+
 CREATE TABLE IF NOT EXISTS produtos (
   id SERIAL PRIMARY KEY,
   tipo VARCHAR(50),
@@ -103,51 +120,50 @@ CREATE TABLE IF NOT EXISTS produtos (
   comprimento NUMERIC(10, 2),
   controla_estoque BOOLEAN DEFAULT false,
   estoque_atual INT DEFAULT 0,
-  estoque_minimo INT DEFAULT 0,
-  estoque_maximo INT DEFAULT 0,
   localizacao VARCHAR(100),
   marca VARCHAR(100),
   descricao TEXT,
   garantia INT,
-  categoria_id INT REFERENCES categorias(id) ON DELETE SET NULL,
   imagem TEXT
 );
 
 CREATE TABLE IF NOT EXISTS estoque (
   id SERIAL PRIMARY KEY,
-  produto_id INT NOT NULL REFERENCES produtos(id) ON DELETE CASCADE,
+  produto_id INT REFERENCES produtos(id) ON DELETE SET NULL,
   quantidade INT NOT NULL,
   tipo_movimento VARCHAR(20) NOT NULL CHECK (tipo_movimento IN ('entrada','saida')),
-  data_movimento TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  data_movimento TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- ========= TABELAS DE COMPRAS E VENDAS =========
 
 CREATE TABLE IF NOT EXISTS ordem_compra (
   id SERIAL PRIMARY KEY,
   fornecedor_id INT REFERENCES fornecedores(id) ON DELETE SET NULL,
-  data_ordem TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  data_ordem TIMESTAMPTZ DEFAULT NOW(),
   status VARCHAR(20) DEFAULT 'aberta' CHECK (status IN ('aberta','fechada','cancelada'))
 );
 
 CREATE TABLE IF NOT EXISTS notas_entrada (
   id SERIAL PRIMARY KEY,
   ordem_id INT REFERENCES ordem_compra(id) ON DELETE CASCADE,
-  produto_id INT NOT NULL REFERENCES produtos(id) ON DELETE CASCADE,
+  produto_id INT REFERENCES produtos(id) ON DELETE SET NULL,
   quantidade INT NOT NULL,
-  data_entrada TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  data_entrada TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS necessidade_compra (
   id SERIAL PRIMARY KEY,
-  produto_id INT NOT NULL REFERENCES produtos(id) ON DELETE CASCADE,
+  produto_id INT REFERENCES produtos(id) ON DELETE CASCADE,
   quantidade_necessaria INT NOT NULL,
-  data_registro TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  data_registro TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS pedidos_venda (
   id SERIAL PRIMARY KEY,
   cliente_id INT REFERENCES clientes(id) ON DELETE SET NULL,
   vendedor_id INT REFERENCES vendedores(id) ON DELETE SET NULL,
-  data_pedido TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  data_pedido TIMESTAMPTZ DEFAULT NOW(),
   status VARCHAR(20) DEFAULT 'aberto' CHECK (status IN ('aberto','faturado','cancelado')),
   total NUMERIC(10, 2) DEFAULT 0
 );
@@ -155,7 +171,7 @@ CREATE TABLE IF NOT EXISTS pedidos_venda (
 CREATE TABLE IF NOT EXISTS pedido_itens (
   id SERIAL PRIMARY KEY,
   pedido_id INT NOT NULL REFERENCES pedidos_venda(id) ON DELETE CASCADE,
-  produto_id INT NOT NULL REFERENCES produtos(id),
+  produto_id INT REFERENCES produtos(id) ON DELETE SET NULL,
   quantidade INT NOT NULL,
   preco_unitario NUMERIC(10, 2) NOT NULL
 );
@@ -164,30 +180,18 @@ CREATE TABLE IF NOT EXISTS orcamentos (
   id SERIAL PRIMARY KEY,
   cliente_id INT REFERENCES clientes(id) ON DELETE SET NULL,
   vendedor_id INT REFERENCES vendedores(id) ON DELETE SET NULL,
-  data_orcamento TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  data_orcamento TIMESTAMPTZ DEFAULT NOW(),
   status VARCHAR(20) DEFAULT 'pendente' CHECK (status IN ('pendente','aprovado','cancelado')),
   total NUMERIC(10, 2) DEFAULT 0
 );
 
-CREATE TABLE IF NOT EXISTS contas_pagar (
-  id SERIAL PRIMARY KEY,
-  fornecedor_id INT REFERENCES fornecedores(id) ON DELETE SET NULL,
-  data_vencimento DATE NOT NULL,
-  valor NUMERIC(10, 2) NOT NULL,
-  status VARCHAR(20) DEFAULT 'pendente' CHECK (status IN ('pendente','pago'))
-);
 
-CREATE TABLE IF NOT EXISTS contas_receber (
-  id SERIAL PRIMARY KEY,
-  cliente_id INT REFERENCES clientes(id) ON DELETE SET NULL,
-  data_vencimento DATE NOT NULL,
-  valor NUMERIC(10, 2) NOT NULL,
-  status VARCHAR(20) DEFAULT 'pendente' CHECK (status IN ('pendente','recebido'))
-);
-
+-- ========= INSERÇÕES INICIAIS (DADOS PADRÃO) =========
 
 INSERT INTO caixa_status (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
 INSERT INTO empresa_config (id, nome_fantasia) VALUES (1, 'BankaiERP') ON CONFLICT (id) DO NOTHING;
-INSERT INTO categorias (nome) VALUES ('Geral'), ('Camisetas'), ('Calçados'), ('Acessórios') ON CONFLICT (nome) DO NOTHING;
-INSERT INTO clientes (nome, email, telefone) VALUES ('Consumidor Final', 'consumidor@final.com', '000000000'), ('Maria Silva', 'maria@email.com', '11999999999'), ('João Souza', 'joao@email.com', '11988888888') ON CONFLICT (email) DO NOTHING;
+INSERT INTO categorias (nome) VALUES ('Geral') ON CONFLICT (nome) DO NOTHING;
+
+-- ADICIONADOS DE VOLTA: Registros padrão para Cliente e Vendedor
+INSERT INTO clientes (nome, email, telefone) VALUES ('Consumidor Final', 'consumidor@final.com', '000000000') ON CONFLICT (email) DO NOTHING;
 INSERT INTO vendedores (nome, email, telefone) VALUES ('Vendedor Padrão', 'vendedor@loja.com', '11987654321') ON CONFLICT (email) DO NOTHING;

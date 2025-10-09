@@ -1,9 +1,53 @@
 import { Router } from 'express';
 import pool from '../db.js';
+// CORREÇÃO: Importação do middleware sem as chaves {}
 import authMiddleware from '../middleware/authMiddleware.js';
 
 const router = Router();
 
+// --- NOVA ROTA ADICIONADA ---
+// ROTA GET: Buscar o histórico de vendas faturadas
+router.get('/', authMiddleware, async (req, res) => {
+    try {
+        const { q } = req.query; // Para a barra de busca
+
+        let query = `
+            SELECT
+                pv.id,
+                pv.data_pedido,
+                pv.status,
+                pv.total,
+                c.nome AS cliente_nome,
+                v.nome AS vendedor_nome
+            FROM
+                pedidos_venda pv
+            LEFT JOIN
+                clientes c ON pv.cliente_id = c.id
+            LEFT JOIN
+                vendedores v ON pv.vendedor_id = v.id
+            WHERE
+                pv.status = 'faturado'
+        `;
+        const values = [];
+
+        if (q) {
+            query += ` AND (c.nome ILIKE $1 OR pv.id::text ILIKE $1)`;
+            values.push(`%${q}%`);
+        }
+
+        query += ' ORDER BY pv.data_pedido DESC'; // Mais recentes primeiro
+
+        const { rows } = await pool.query(query, values);
+        res.json(rows);
+
+    } catch (err) {
+        console.error('Erro ao buscar histórico de vendas:', err.message);
+        res.status(500).json({ message: 'Erro no servidor ao buscar histórico de vendas.' });
+    }
+});
+
+
+// --- SUA ROTA ORIGINAL MANTIDA EXATAMENTE COMO ESTAVA ---
 // Rota para finalizar uma venda
 router.post('/', authMiddleware, async (req, res) => {
   const { cliente_id, vendedor_id, total, itens } = req.body;
@@ -52,7 +96,7 @@ router.post('/', authMiddleware, async (req, res) => {
       VALUES ('venda', $1, $2, $3);
     `;
     const descricaoVenda = `Venda referente ao Pedido #${pedidoId}`;
-    await client.query(caixaQuery, [total, descricaoVenda, req.user.id]); // req.user.id vem do seu middleware de auth
+    await client.query(caixaQuery, [total, descricaoVenda, req.user.id]);
 
     // Confirma a transação
     await client.query('COMMIT');
@@ -67,6 +111,24 @@ router.post('/', authMiddleware, async (req, res) => {
   } finally {
     // Libera o cliente da pool
     client.release();
+  }
+});
+
+// ROTA DELETE: Excluir um ou mais pedidos de venda
+router.delete('/', authMiddleware, async (req, res) => {
+  try {
+      const { ids } = req.body;
+      if (!ids || ids.length === 0) {
+          return res.status(400).json({ message: 'Nenhum ID de venda fornecido para exclusão.' });
+      }
+
+      const query = 'DELETE FROM pedidos_venda WHERE id = ANY($1::int[])';
+      await pool.query(query, [ids]);
+
+      res.status(200).json({ message: 'Venda(s) excluída(s) com sucesso.' });
+  } catch (err) {
+      console.error('Erro ao excluir vendas:', err.message);
+      res.status(500).json({ message: 'Erro no servidor ao excluir vendas.' });
   }
 });
 

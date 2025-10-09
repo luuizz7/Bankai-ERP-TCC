@@ -132,12 +132,6 @@
 
         <div v-show="activeTab === 'dadosComplementares'" class="form-grid">
           <div class="form-group col-4">
-            <label>Categoria</label>
-            <select v-model="produto.categoria_id">
-              <option :value="null">Selecione</option>
-            </select>
-          </div>
-          <div class="form-group col-4">
             <label>Marca</label>
             <input type="text" v-model="produto.marca" />
           </div>
@@ -152,12 +146,19 @@
             <label>Imagens do Produto</label>
             <input type="file" multiple @change="onFileChange" />
           </div>
+
           <div class="form-group col-12" v-if="previews.length">
             <div class="preview-list">
-              <img v-for="(img, i) in previews" :key="i" :src="img" class="preview-img" />
+              <div v-for="(img, i) in previews" :key="i" class="preview-item">
+                <img :src="img" class="preview-img" />
+                <button type="button" class="btn-remove-img" @click="removerImagem(i)">
+                  ×
+                </button>
+              </div>
             </div>
           </div>
         </div>
+
 
         <div v-show="activeTab === 'garantia'" class="form-grid">
           <div class="form-group col-2">
@@ -196,7 +197,7 @@ const produto = reactive({
   preco_venda: 0, preco_promocional: 0, peso_liquido: 0, peso_bruto: 0,
   tipo_embalagem: "Pacote/Caixa", largura: 0, altura: 0, comprimento: 0,
   controla_estoque: false, estoque_atual: 0, estoque_minimo: 0, estoque_maximo: 0,
-  localizacao: "", categoria_id: null, marca: "", descricao: "", garantia: 0, imagem: null
+  localizacao: "", marca: "", descricao: "", garantia: 0, imagem: null
 });
 
 const previews = ref([]);
@@ -224,6 +225,20 @@ onMounted(async () => {
     }
   }
 });
+
+const removerImagem = (index) => {
+  // Remove do preview
+  previews.value.splice(index, 1);
+
+  // Remove do array de arquivos caso seja um novo upload
+  if (imageFiles.value[index]) imageFiles.value.splice(index, 1);
+
+  // Se for a imagem existente do produto
+  if (!imageFiles.value.length && !previews.value.length) {
+    produto.imagem = null; // marca para remover no backend
+  }
+};
+
 
 const salvarProduto = async () => {
   errorMessage.value = "";
@@ -488,4 +503,26 @@ const onFileChange = (e) => {
 .actions .btn-primary:hover {
   background-color: #F97316;
 }
+
+.preview-item {
+  position: relative;
+}
+
+.btn-remove-img {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: #EF4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 </style>

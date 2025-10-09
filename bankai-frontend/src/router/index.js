@@ -10,7 +10,6 @@ import MinhaConta from '../views/MinhaConta.vue';
 // Imports de Cadastros
 import Clientes from '../views/cadastros/Clientes.vue';
 import Fornecedores from '../views/cadastros/Fornecedores.vue';
-import Categorias from '../views/cadastros/Categorias.vue';
 import Vendedores from '../views/cadastros/Vendedores.vue'; // Componente pai para o layout
 import VendedoresLista from '../views/cadastros/VendedoresLista.vue';
 import VendedorForm from '../views/cadastros/VendedorForm.vue';
@@ -51,7 +50,7 @@ const routes = [
   // --- ROTAS DE CADASTROS ---
   { path: '/cadastros/clientes', name: 'clientes', component: Clientes },
   { path: '/cadastros/fornecedores', name: 'fornecedores', component: Fornecedores },
-  { path: '/cadastros/categorias', name: 'categorias', component: Categorias },
+
   
   // --- ROTA DE VENDEDORES (CORRIGIDA E COMPLETA) ---
   {

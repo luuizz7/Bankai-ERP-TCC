@@ -1,11 +1,13 @@
 <template>
   <div class="pdv-container">
+    <!-- Tela quando o caixa está fechado -->
     <div v-if="!caixaAberto && !mostrandoModalAbertura" class="caixa-fechado">
       <div class="relogio">{{ horaAtual }}</div>
       <div class="data-atual">{{ dataAtual }}</div>
       <button @click="mostrandoModalAbertura = true" class="btn btn-abrir-caixa">Abrir caixa</button>
     </div>
 
+    <!-- Modal de abertura de caixa -->
     <div v-if="mostrandoModalAbertura" class="modal-backdrop">
       <div class="modal-content" @click.stop>
         <h3>Abertura de caixa</h3>
@@ -19,33 +21,42 @@
         </div>
       </div>
     </div>
-    
+
+    <!-- Layout do PDV quando o caixa está aberto -->
     <div v-if="caixaAberto" class="pdv-layout">
       <main class="pdv-main-content">
         <header class="main-header">
-            <div class="search-container">
-                <input type="text" v-model="termoBuscaProduto" placeholder="Pesquise por descrição ou código (SKU)" class="search-input"/>
-                <div v-if="resultadosBusca.length > 0" class="search-results">
-                    <div v-for="produto in resultadosBusca" :key="produto.id" class="result-item" @click="adicionarProdutoAoCarrinho(produto)">
-                    {{ produto.nome }} - <strong>{{ formatCurrency(produto.preco_venda) }}</strong>
-                    </div>
-                </div>
+          <!-- Barra de pesquisa de produtos -->
+          <div class="search-container">
+            <input type="text" v-model="termoBuscaProduto" placeholder="Pesquise por descrição ou código (SKU)" class="search-input"/>
+            <div v-if="resultadosBusca.length > 0" class="search-results">
+              <div v-for="produto in resultadosBusca" :key="produto.id" class="result-item" @click="adicionarProdutoAoCarrinho(produto)">
+                {{ produto.nome }} - <strong>{{ formatCurrency(produto.preco_venda) }}</strong>
+              </div>
             </div>
-            <div class="actions-menu-container">
-                <button @click="toggleOpcoes" class="btn-opcoes">Opções</button>
-                <div v-if="mostrandoOpcoes" class="dropdown-opcoes">
-                    <a @click="abrirModalFechamento">Fechar Caixa</a>
-                    <a @click="abrirModalSangria">Sangria de Caixa</a>
-                    <a @click="abrirModalReforco">Reforço de Caixa</a>
-                </div>
+          </div>
+
+          <!-- Menu de opções -->
+          <div class="actions-menu-container">
+            <button @click="toggleOpcoes" class="btn-opcoes">Opções</button>
+            <div v-if="mostrandoOpcoes" class="dropdown-opcoes">
+              <a @click="abrirModalFechamento">Fechar Caixa</a>
+              <a @click="abrirModalSangria">Sangria de Caixa</a>
+              <a @click="abrirModalReforco">Reforço de Caixa</a>
             </div>
+          </div>
         </header>
 
+        <!-- Lista de itens do carrinho -->
         <div class="lista-itens">
           <table class="table" v-if="carrinho.length > 0">
             <thead>
               <tr>
-                <th class="col-desc">Descrição</th><th class="col-qtd">Qtde</th><th class="col-preco">Preço un</th><th class="col-total">Preço total</th><th class="col-acao"></th>
+                <th class="col-desc">Descrição</th>
+                <th class="col-qtd">Qtde</th>
+                <th class="col-preco">Preço un</th>
+                <th class="col-total">Preço total</th>
+                <th class="col-acao"></th>
               </tr>
             </thead>
             <tbody>
@@ -62,59 +73,100 @@
         </div>
       </main>
 
+      <!-- Sidebar do PDV -->
       <aside class="pdv-sidebar">
         <div class="sidebar-section">
           <label>Cliente</label>
-          <select v-model="clienteId" class="select-moderno"><option v-for="cliente in clientes" :key="cliente.id" :value="cliente.id">{{ cliente.nome }}</option></select>
+          <select v-model="clienteId" class="select-moderno">
+            <option v-for="cliente in clientes" :key="cliente.id" :value="cliente.id">{{ cliente.nome }}</option>
+          </select>
         </div>
         <div class="sidebar-section">
           <label>Vendedor</label>
-          <select v-model="vendedorId" class="select-moderno"><option :value="null">Nenhum</option><option v-for="vendedor in vendedores" :key="vendedor.id" :value="vendedor.id">{{ vendedor.nome }}</option></select>
+          <select v-model="vendedorId" class="select-moderno">
+            <option :value="null">Nenhum</option>
+            <option v-for="vendedor in vendedores" :key="vendedor.id" :value="vendedor.id">{{ vendedor.nome }}</option>
+          </select>
         </div>
+
         <div class="total-container">
           <span class="total-label">Total da venda</span>
           <span class="total-valor">{{ formatCurrency(valorTotalVenda) }}</span>
         </div>
-        <button @click="finalizarVenda" class="btn-finalizar" :disabled="carrinho.length === 0 || vendendo">{{ vendendo ? 'Finalizando...' : 'Finalizar' }}</button>
+
+        <button @click="finalizarVenda" class="btn-finalizar" :disabled="carrinho.length === 0 || vendendo">
+          {{ vendendo ? 'Finalizando...' : 'Finalizar' }}
+        </button>
       </aside>
     </div>
 
+    <!-- Modal Fechamento de Caixa -->
     <div v-if="showModalFechar" class="modal-backdrop">
-        <div class="modal-content modal-fechamento" @click.stop>
-            <h3>Fechamento de Caixa</h3>
-            <div v-if="detalhesCaixa">
-                <p><span>Abertura:</span> <strong>{{ formatCurrency(detalhesCaixa.valor_inicial) }}</strong></p>
-                <p><span>Vendas:</span> <strong>{{ formatCurrency(detalhesCaixa.total_vendas) }}</strong></p>
-                <p><span>Reforços:</span> <strong>{{ formatCurrency(detalhesCaixa.total_reforcos) }}</strong></p>
-                <p><span>Sangrias:</span> <strong>- {{ formatCurrency(detalhesCaixa.total_sangrias) }}</strong></p>
-                <hr>
-                <p class="total-calculado"><span>Total calculado:</span> <strong>{{ formatCurrency(detalhesCaixa.total_calculado) }}</strong></p>
-                <div class="form-group"><label>Valor contado na gaveta</label><input type="text" v-model="valorFechamentoContadoFormatado" class="input-dinheiro" /></div>
-            </div>
-             <div class="modal-actions"><button @click="showModalFechar = false" class="btn btn-secondary">Cancelar</button><button @click="fecharCaixa" class="btn btn-danger">Confirmar Fechamento</button></div>
+      <div class="modal-content modal-fechamento" @click.stop>
+        <h3>Fechamento de Caixa</h3>
+        <div v-if="detalhesCaixa">
+          <p><span>Abertura:</span> <strong>{{ formatCurrency(detalhesCaixa.valor_inicial) }}</strong></p>
+          <p><span>Vendas:</span> <strong>{{ formatCurrency(detalhesCaixa.total_vendas) }}</strong></p>
+          <p><span>Reforços:</span> <strong>{{ formatCurrency(detalhesCaixa.total_reforcos) }}</strong></p>
+          <p><span>Sangrias:</span> <strong>- {{ formatCurrency(detalhesCaixa.total_sangrias) }}</strong></p>
+          <hr>
+          <p class="total-calculado"><span>Total calculado:</span> <strong>{{ formatCurrency(detalhesCaixa.total_calculado) }}</strong></p>
+          <div class="form-group">
+            <label>Valor contado na gaveta</label>
+            <input type="text" v-model="valorFechamentoContadoFormatado" class="input-dinheiro" />
+          </div>
         </div>
+        <div class="modal-actions">
+          <button @click="showModalFechar = false" class="btn btn-secondary">Cancelar</button>
+          <button @click="fecharCaixa" class="btn btn-danger">Confirmar Fechamento</button>
+        </div>
+      </div>
     </div>
+
+    <!-- Modal Sangria de Caixa -->
     <div v-if="showModalSangria" class="modal-backdrop">
-         <div class="modal-content" @click.stop>
-            <h3>Sangria de Caixa</h3><p>Retirada de valor do caixa.</p>
-            <div class="form-group"><label>Valor a ser retirado</label><input type="text" v-model="valorSangriaFormatado" class="input-dinheiro" /></div>
-            <div class="form-group"><label>Descrição (opcional)</label><input type="text" v-model="descricaoMovimento" class="input-text"/></div>
-             <div class="modal-actions"><button @click="showModalSangria = false" class="btn btn-secondary">Cancelar</button><button @click="fazerSangria" class="btn btn-primary">Confirmar Sangria</button></div>
+      <div class="modal-content" @click.stop>
+        <h3>Sangria de Caixa</h3>
+        <p>Retirada de valor do caixa.</p>
+        <div class="form-group">
+          <label>Valor a ser retirado</label>
+          <input type="text" v-model="valorSangriaFormatado" class="input-dinheiro" />
         </div>
+        <div class="form-group">
+          <label>Descrição (opcional)</label>
+          <input type="text" v-model="descricaoMovimento" class="input-text"/>
+        </div>
+        <div class="modal-actions">
+          <button @click="showModalSangria = false" class="btn btn-secondary">Cancelar</button>
+          <button @click="fazerSangria" class="btn btn-primary">Confirmar Sangria</button>
+        </div>
+      </div>
     </div>
+
+    <!-- Modal Reforço de Caixa -->
     <div v-if="showModalReforco" class="modal-backdrop">
-        <div class="modal-content" @click.stop>
-            <h3>Reforço de Caixa</h3><p>Adição de valor ao caixa.</p>
-            <div class="form-group"><label>Valor a ser adicionado</label><input type="text" v-model="valorReforcoFormatado" class="input-dinheiro" /></div>
-            <div class="form-group"><label>Descrição (opcional)</label><input type="text" v-model="descricaoMovimento" class="input-text"/></div>
-             <div class="modal-actions"><button @click="showModalReforco = false" class="btn btn-secondary">Cancelar</button><button @click="fazerReforco" class="btn btn-primary">Confirmar Reforço</button></div>
+      <div class="modal-content" @click.stop>
+        <h3>Reforço de Caixa</h3>
+        <p>Adição de valor ao caixa.</p>
+        <div class="form-group">
+          <label>Valor a ser adicionado</label>
+          <input type="text" v-model="valorReforcoFormatado" class="input-dinheiro" />
         </div>
+        <div class="form-group">
+          <label>Descrição (opcional)</label>
+          <input type="text" v-model="descricaoMovimento" class="input-text"/>
+        </div>
+        <div class="modal-actions">
+          <button @click="showModalReforco = false" class="btn btn-secondary">Cancelar</button>
+          <button @click="fazerReforco" class="btn btn-primary">Confirmar Reforço</button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useAuth } from '../../auth';
 
 const auth = useAuth();
@@ -141,143 +193,159 @@ const valorFechamentoContado = ref(0);
 const valorSangria = ref(0);
 const valorReforco = ref(0);
 const descricaoMovimento = ref('');
+const todosProdutos = ref([]);
 
 let relogioInterval = null;
 let debounceTimer = null;
 
 const formatCurrency = (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0);
 const parseCurrency = (value) => {
-    const digitos = value.replace(/\D/g, '');
-    return digitos ? Number(digitos) / 100 : 0;
+  const digitos = value.replace(/\D/g, '');
+  return digitos ? Number(digitos) / 100 : 0;
 }
 
-const valorAberturaFormatado = computed({ get: () => formatCurrency(valorAbertura.value), set: (v) => { valorAbertura.value = parseCurrency(v); }});
-const valorFechamentoContadoFormatado = computed({ get: () => formatCurrency(valorFechamentoContado.value), set: (v) => { valorFechamentoContado.value = parseCurrency(v); }});
-const valorSangriaFormatado = computed({ get: () => formatCurrency(valorSangria.value), set: (v) => { valorSangria.value = parseCurrency(v); }});
-const valorReforcoFormatado = computed({ get: () => formatCurrency(valorReforco.value), set: (v) => { valorReforco.value = parseCurrency(v); }});
+const valorAberturaFormatado = computed({
+  get: () => formatCurrency(valorAbertura.value),
+  set: (v) => { valorAbertura.value = parseCurrency(v); }
+});
+
+const valorFechamentoContadoFormatado = computed({
+  get: () => formatCurrency(valorFechamentoContado.value),
+  set: (v) => { valorFechamentoContado.value = parseCurrency(v); }
+});
+
+const valorSangriaFormatado = computed({
+  get: () => formatCurrency(valorSangria.value),
+  set: (v) => { valorSangria.value = parseCurrency(v); }
+});
+
+const valorReforcoFormatado = computed({
+  get: () => formatCurrency(valorReforco.value),
+  set: (v) => { valorReforco.value = parseCurrency(v); }
+});
+
 const valorTotalVenda = computed(() => carrinho.value.reduce((acc, item) => acc + (item.quantidade * item.preco_venda), 0));
 
 const apiFetch = async (url, options = {}) => {
-    const defaultOptions = {
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${auth.token.value}`
-        }
-    };
-    const response = await fetch(`http://localhost:5000/api${url}`, { ...defaultOptions, ...options });
-    if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: response.statusText }));
-        throw new Error(errorData.message || 'Ocorreu um erro');
-    }
-    return response.json();
+  const defaultOptions = {
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${auth.token.value}` }
+  };
+  const response = await fetch(`http://localhost:5000/api${url}`, { ...defaultOptions, ...options });
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: response.statusText }));
+    throw new Error(errorData.message || 'Ocorreu um erro');
+  }
+  return response.json();
 };
 
 const abrirCaixa = async () => {
-    try {
-        await apiFetch('/caixa/abrir', { method: 'POST', body: JSON.stringify({ valor_inicial: valorAbertura.value }) });
-        caixaAberto.value = true;
-        mostrandoModalAbertura.value = false;
-    } catch (err) { alert(err.message); }
+  try {
+    await apiFetch('/caixa/abrir', { method: 'POST', body: JSON.stringify({ valor_inicial: valorAbertura.value }) });
+    caixaAberto.value = true;
+    mostrandoModalAbertura.value = false;
+  } catch (err) { alert(err.message); }
 };
 
 const verificarStatusCaixa = async () => {
-    try {
-        const data = await apiFetch('/caixa/status');
-        caixaAberto.value = data.aberto;
-    } catch(err) { console.error(err); }
+  try {
+    const data = await apiFetch('/caixa/status');
+    caixaAberto.value = data.aberto;
+  } catch(err) { console.error(err); }
 };
 
 const buscarDadosIniciaisPDV = async () => {
-    try {
-        const [vendedoresRes, clientesRes] = await Promise.all([apiFetch('/vendedores'), apiFetch('/clientes')]);
-        vendedores.value = vendedoresRes;
-        clientes.value = clientesRes;
-        if (clientes.value.length > 0) {
-            clienteId.value = clientes.value.find(c => c.nome === 'Consumidor Final')?.id || clientes.value[0].id;
-        }
-    } catch (err) { console.error('Erro ao buscar dados iniciais do PDV:', err); }
+  try {
+    const [vendedoresRes, clientesRes] = await Promise.all([apiFetch('/vendedores'), apiFetch('/clientes')]);
+    vendedores.value = vendedoresRes;
+    clientes.value = clientesRes;
+    if (clientes.value.length > 0) {
+      clienteId.value = clientes.value.find(c => c.nome === 'Consumidor Final')?.id || clientes.value[0].id;
+    }
+  } catch (err) { console.error('Erro ao buscar dados iniciais do PDV:', err); }
+};
+
+const buscarTodosProdutos = async () => {
+  try { 
+    const data = await apiFetch('/produtos');
+    todosProdutos.value = data.produtos; // <-- A ÚNICA MUDANÇA É ESTA LINHA
+  } 
+  catch (err) { console.error('Erro ao buscar produtos:', err); }
 };
 
 const adicionarProdutoAoCarrinho = (produto) => {
-    const itemExistente = carrinho.value.find(item => item.id === produto.id);
-    if(itemExistente) { itemExistente.quantidade++; } 
-    else { carrinho.value.push({ ...produto, quantidade: 1 }); }
-    termoBuscaProduto.value = '';
-    resultadosBusca.value = [];
+  const itemExistente = carrinho.value.find(item => item.id === produto.id);
+  if(itemExistente) { itemExistente.quantidade++; } 
+  else { carrinho.value.push({ ...produto, quantidade: 1 }); }
+  termoBuscaProduto.value = '';
+  resultadosBusca.value = [];
 };
 
 const removerItemDoCarrinho = (index) => { carrinho.value.splice(index, 1); };
 
 const finalizarVenda = async () => {
-    if (carrinho.value.length === 0) return alert('Adicione pelo menos um produto.');
-    vendendo.value = true;
-    try {
-        const result = await apiFetch('/pedidos-venda', {
-            method: 'POST',
-            body: JSON.stringify({
-                cliente_id: clienteId.value, vendedor_id: vendedorId.value,
-                total: valorTotalVenda.value, itens: carrinho.value
-            })
-        });
-        alert(`Venda #${result.pedidoId} finalizada com sucesso!`);
-        carrinho.value = [];
-    } catch(err) {
-        alert(`Erro: ${err.message}`);
-    } finally {
-        vendendo.value = false;
-    }
+  if (carrinho.value.length === 0) return alert('Adicione pelo menos um produto.');
+  vendendo.value = true;
+  try {
+    const result = await apiFetch('/pedidos-venda', {
+      method: 'POST',
+      body: JSON.stringify({ cliente_id: clienteId.value, vendedor_id: vendedorId.value, total: valorTotalVenda.value, itens: carrinho.value })
+    });
+    alert(`Venda #${result.pedidoId} finalizada com sucesso!`);
+    carrinho.value = [];
+  } catch(err) { alert(`Erro: ${err.message}`); }
+  finally { vendendo.value = false; }
 };
 
 const toggleOpcoes = () => { mostrandoOpcoes.value = !mostrandoOpcoes.value; };
-const limparFormsMovimento = () => {
-    valorSangria.value = 0; valorReforco.value = 0; descricaoMovimento.value = '';
-}
+
+const limparFormsMovimento = () => { valorSangria.value = 0; valorReforco.value = 0; descricaoMovimento.value = ''; }
 
 const abrirModalFechamento = async () => {
-    mostrandoOpcoes.value = false;
-    try {
-        detalhesCaixa.value = await apiFetch('/caixa/detalhes');
-        showModalFechar.value = true;
-    } catch (err) { alert(err.message); }
-}
-const abrirModalSangria = () => {
-    limparFormsMovimento(); mostrandoOpcoes.value = false; showModalSangria.value = true;
-}
-const abrirModalReforco = () => {
-    limparFormsMovimento(); mostrandoOpcoes.value = false; showModalReforco.value = true;
-}
+  mostrandoOpcoes.value = false;
+  try { detalhesCaixa.value = await apiFetch('/caixa/detalhes'); showModalFechar.value = true; } 
+  catch (err) { alert(err.message); }
+};
+
+const abrirModalSangria = () => { limparFormsMovimento(); mostrandoOpcoes.value = false; showModalSangria.value = true; }
+const abrirModalReforco = () => { limparFormsMovimento(); mostrandoOpcoes.value = false; showModalReforco.value = true; }
 
 const fecharCaixa = async () => {
-    try {
-        const result = await apiFetch('/caixa/fechar', { method: 'POST', body: JSON.stringify({ valor_final_contado: valorFechamentoContado.value }) });
-        alert(result.message);
-        caixaAberto.value = false;
-        showModalFechar.value = false;
-    } catch (err) { alert(err.message); }
+  try {
+    const result = await apiFetch('/caixa/fechar', { method: 'POST', body: JSON.stringify({ valor_final_contado: valorFechamentoContado.value }) });
+    alert(result.message);
+    caixaAberto.value = false;
+    showModalFechar.value = false;
+  } catch (err) { alert(err.message); }
 };
+
 const fazerSangria = async () => {
-    try {
-        const result = await apiFetch('/caixa/sangria', { method: 'POST', body: JSON.stringify({ valor: valorSangria.value, descricao: descricaoMovimento.value }) });
-        alert(result.message);
-        showModalSangria.value = false;
-    } catch (err) { alert(err.message); }
-}
+  try {
+    const result = await apiFetch('/caixa/sangria', { method: 'POST', body: JSON.stringify({ valor: valorSangria.value, descricao: descricaoMovimento.value }) });
+    alert(result.message);
+    showModalSangria.value = false;
+  } catch (err) { alert(err.message); }
+};
+
 const fazerReforco = async () => {
-     try {
-        const result = await apiFetch('/caixa/reforco', { method: 'POST', body: JSON.stringify({ valor: valorReforco.value, descricao: descricaoMovimento.value }) });
-        alert(result.message);
-        showModalReforco.value = false;
-    } catch (err) { alert(err.message); }
-}
+  try {
+    const result = await apiFetch('/caixa/reforco', { method: 'POST', body: JSON.stringify({ valor: valorReforco.value, descricao: descricaoMovimento.value }) });
+    alert(result.message);
+    showModalReforco.value = false;
+  } catch (err) { alert(err.message); }
+};
 
 watch(termoBuscaProduto, (novoValor) => {
   clearTimeout(debounceTimer);
-  if (novoValor.trim().length < 2) { resultadosBusca.value = []; return; }
-  debounceTimer = setTimeout(async () => {
-    try {
-      resultadosBusca.value = await apiFetch(`/produtos?q=${novoValor}`);
-    } catch (err) { console.error(err); }
-  }, 300);
+
+  if (novoValor.trim().length < 1) {
+    resultadosBusca.value = [];
+    return;
+  }
+
+  debounceTimer = setTimeout(() => {
+    const busca = novoValor.toLowerCase();
+    resultadosBusca.value = todosProdutos.value.filter(p => p.nome.toLowerCase().includes(busca) || (p.sku && p.sku.includes(busca)));
+  }, 200);
 });
 
 const atualizarRelogio = () => {
@@ -285,12 +353,17 @@ const atualizarRelogio = () => {
   horaAtual.value = agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
   dataAtual.value = agora.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
 };
-onMounted(() => {
+
+onMounted(async () => {
   atualizarRelogio();
   relogioInterval = setInterval(atualizarRelogio, 1000);
-  verificarStatusCaixa();
-  buscarDadosIniciaisPDV();
+  await verificarStatusCaixa();
+  if (caixaAberto.value) {
+    await buscarDadosIniciaisPDV();
+    await buscarTodosProdutos();
+  }
 });
+
 onUnmounted(() => { clearInterval(relogioInterval); });
 </script>
 

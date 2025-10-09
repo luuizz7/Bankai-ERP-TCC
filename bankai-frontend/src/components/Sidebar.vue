@@ -136,7 +136,6 @@ const menuItems = ref([
     children: [
       { name: 'Clientes e Fornecedores', path: '/cadastros/clientes' },
       { name: 'Produtos', path: '/cadastros/produtos' },
-      { name: 'Categoria De Produtos', path: '/cadastros/categorias' },
       { name: 'Vendedores', path: '/cadastros/vendedores' },
     ]
   },
