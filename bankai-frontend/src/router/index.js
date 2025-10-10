@@ -9,11 +9,13 @@ import MinhaConta from '../views/MinhaConta.vue';
 
 // Imports de Cadastros
 import Clientes from '../views/cadastros/Clientes.vue';
+import ClienteForm from '../views/cadastros/ClienteForm.vue';
 import Fornecedores from '../views/cadastros/Fornecedores.vue';
-import Vendedores from '../views/cadastros/Vendedores.vue'; // Componente pai para o layout
+import FornecedorForm from '../views/cadastros/FornecedorForm.vue';
+import Vendedores from '../views/cadastros/Vendedores.vue';
 import VendedoresLista from '../views/cadastros/VendedoresLista.vue';
 import VendedorForm from '../views/cadastros/VendedorForm.vue';
-import Produtos from '../views/cadastros/Produtos.vue'; // Componente pai para o layout
+import Produtos from '../views/cadastros/Produtos.vue';
 import ProdutosLista from '../views/cadastros/ProdutosLista.vue';
 import ProdutoForm from '../views/cadastros/ProdutoForm.vue';
 
@@ -39,7 +41,6 @@ import FolhaPagamento from '../views/financas/FolhaPagamento.vue';
 import UsuariosLista from '../views/configuracoes/UsuariosLista.vue';
 import UsuarioForm from '../views/configuracoes/UsuarioForm.vue';
 
-
 const routes = [
   { path: '/login', name: 'login', component: Login, meta: { public: true } },
   { path: '/', redirect: '/dashboard' },
@@ -49,13 +50,16 @@ const routes = [
   
   // --- ROTAS DE CADASTROS ---
   { path: '/cadastros/clientes', name: 'clientes', component: Clientes },
-  { path: '/cadastros/fornecedores', name: 'fornecedores', component: Fornecedores },
+  { path: '/cadastros/clientes/novo', name: 'NovoCliente', component: ClienteForm },
+  { path: '/cadastros/clientes/editar/:id', name: 'EditarCliente', component: ClienteForm },
 
-  
-  // --- ROTA DE VENDEDORES (CORRIGIDA E COMPLETA) ---
+  // A rota de fornecedores agora é acessada pela aba na tela de clientes, mas os formulários precisam de rotas diretas
+  { path: '/cadastros/fornecedores/novo', name: 'NovoFornecedor', component: FornecedorForm },
+  { path: '/cadastros/fornecedores/editar/:id', name: 'EditarFornecedor', component: FornecedorForm },
+
   {
     path: '/cadastros/vendedores',
-    component: Vendedores, // Componente pai que contém <router-view />
+    component: Vendedores,
     children: [
       { path: '', name: 'vendedores-lista', component: VendedoresLista },
       { path: 'novo', name: 'vendedor-novo', component: VendedorForm },
@@ -63,10 +67,9 @@ const routes = [
     ],
   },
   
-  // --- ROTA DE PRODUTOS ---
   {
     path: '/cadastros/produtos',
-    component: Produtos, // Componente pai que contém <router-view />
+    component: Produtos,
     children: [
       { path: '', name: 'produtos-lista', component: ProdutosLista },
       { path: 'novo', name: 'produto-novo', component: ProdutoForm },

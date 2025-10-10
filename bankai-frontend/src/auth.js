@@ -1,8 +1,9 @@
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 
-const user = ref(JSON.parse(localStorage.getItem('user')) || null);
-const token = ref(localStorage.getItem('token') || null);
+// MUDANÇA AQUI: Trocado localStorage por sessionStorage
+const user = ref(JSON.parse(sessionStorage.getItem('user')) || null);
+const token = ref(sessionStorage.getItem('token') || null);
 const errorMessage = ref('');
 
 export function useAuth() {
@@ -13,7 +14,6 @@ export function useAuth() {
   const login = async (email, password) => {
     errorMessage.value = '';
     try {
-      // A CORREÇÃO ESTÁ NESTA LINHA:
       const response = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -28,8 +28,10 @@ export function useAuth() {
 
       token.value = data.token;
       user.value = data.user;
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      
+      // MUDANÇA AQUI: Trocado localStorage por sessionStorage
+      sessionStorage.setItem('token', data.token);
+      sessionStorage.setItem('user', JSON.stringify(data.user));
       
       router.push('/');
 
@@ -41,8 +43,11 @@ export function useAuth() {
   const logout = () => {
     token.value = null;
     user.value = null;
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    
+    // MUDANÇA AQUI: Trocado localStorage por sessionStorage
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
+    
     router.push('/login');
   };
 
