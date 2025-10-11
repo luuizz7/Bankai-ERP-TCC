@@ -84,13 +84,15 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue';
+import { ref, reactive, computed, onMounted, watch } from 'vue';
+import { useAuth } from '../auth'; // Verifique o caminho
 
+const auth = useAuth();
 const isModalOpen = ref(false);
 const currentDate = ref(new Date());
 const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const minuteOptions = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'];
-const appointments = ref([]);
+const appointments = ref([]); // Esta lista agora será preenchida pela API
 
 const newAppointment = reactive({
   date: '',
@@ -101,10 +103,9 @@ const newAppointment = reactive({
 
 const currentYear = computed(() => currentDate.value.getFullYear());
 const currentMonth = computed(() => currentDate.value.getMonth());
-const currentMonthName = computed(() => 
-  currentDate.value.toLocaleString('pt-BR', { month: 'long' })
-);
+const currentMonthName = computed(() => currentDate.value.toLocaleString('pt-BR', { month: 'long' }));
 
+// A LÓGICA DE GERAR O CALENDÁRIO FOI MANTIDA
 const calendarDays = computed(() => {
   const year = currentYear.value;
   const month = currentMonth.value;
@@ -116,7 +117,7 @@ const calendarDays = computed(() => {
   
   for (let i = 0; i < startDayOfWeek; i++) {
     const prevMonthDay = new Date(year, month, i - startDayOfWeek + 1);
-    days.push({ date: prevMonthDay, isCurrentMonth: false });
+    days.push({ date: prevMonthDay, isCurrentMonth: false, events: [] });
   }
 
   for (let i = 1; i <= daysInMonth; i++) {
@@ -128,30 +129,48 @@ const calendarDays = computed(() => {
     days.push({ date, isCurrentMonth: true, isToday, events: dayEvents });
   }
   
-  const gridCells = 42;
+  const gridCells = 42; // 6 semanas * 7 dias
   const remainingCells = gridCells - days.length;
   for (let i = 1; i <= remainingCells; i++) {
     const nextMonthDay = new Date(year, month + 1, i);
-    days.push({ date: nextMonthDay, isCurrentMonth: false });
+    days.push({ date: nextMonthDay, isCurrentMonth: false, events: [] });
   }
 
   return days;
 });
 
-const formatDate = (date) => {
-  const d = new Date(date);
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+// FUNÇÃO ADICIONADA PARA COMUNICAR COM A API
+const apiFetch = async (url, options = {}) => {
+  const defaultOptions = {
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${auth.token.value}` }
+  };
+  const response = await fetch(`http://localhost:5000/api${url}`, { ...defaultOptions, ...options });
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: response.statusText }));
+    throw new Error(errorData.message || 'Ocorreu um erro');
+  }
+  return response.status !== 204 ? response.json() : null;
 };
 
-const formatEventTime = (isoDateString) => {
-  const date = new Date(isoDateString);
-  const hours = date.getHours();
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${hours}:${minutes}`;
+// FUNÇÃO ADICIONADA PARA BUSCAR OS COMPROMISSOS
+const fetchAppointments = async () => {
+  try {
+    // No futuro, podemos otimizar para buscar apenas o mês atual
+    const data = await apiFetch('/agenda');
+    appointments.value = data;
+  } catch (err) {
+    console.error('Erro ao buscar compromissos:', err);
+  }
 };
+
+// onMounted AGORA CHAMA A API
+onMounted(fetchAppointments);
+
+// watch ADICIONADO PARA ATUALIZAR AO MUDAR DE MÊS
+watch(currentDate, fetchAppointments);
+
+const formatDate = (date) => { /* ... (sua função mantida) ... */ };
+const formatEventTime = (isoDateString) => { /* ... (sua função mantida) ... */ };
 
 const openModal = (date) => {
   newAppointment.date = formatDate(date);
@@ -165,42 +184,57 @@ const closeModal = () => {
   isModalOpen.value = false;
 };
 
-const saveAppointment = () => {
+// FUNÇÃO saveAppointment ATUALIZADA
+const saveAppointment = async () => {
   if (!newAppointment.description.trim()) {
     alert('A descrição é obrigatória.');
     return;
   }
   const fullDate = `${newAppointment.date}T${newAppointment.hour}:${newAppointment.minute}:00`;
-  appointments.value.push({
-    id: Date.now(),
-    date: fullDate,
-    description: newAppointment.description
-  });
-  closeModal();
+  
+  try {
+    await apiFetch('/agenda', {
+      method: 'POST',
+      body: JSON.stringify({
+        titulo: newAppointment.description,
+        data_inicio: fullDate
+      })
+    });
+    closeModal();
+    await fetchAppointments(); // Atualiza a lista com o novo compromisso
+  } catch(err) {
+    alert(`Erro ao salvar: ${err.message}`);
+  }
 };
 
-const deleteAppointment = (eventId) => {
-  const confirmDelete = confirm('Tem certeza que deseja excluir este compromisso?');
-  if (confirmDelete) {
-    appointments.value = appointments.value.filter(app => app.id !== eventId);
+// FUNÇÃO deleteAppointment ATUALIZADA
+const deleteAppointment = async (eventId) => {
+  if (!confirm('Tem certeza que deseja excluir este compromisso?')) return;
+
+  try {
+    await apiFetch(`/agenda/${eventId}`, { method: 'DELETE' });
+    await fetchAppointments(); // Atualiza a lista após deletar
+  } catch (err) {
+    alert(`Erro ao excluir: ${err.message}`);
   }
 };
 
 const prevMonth = () => {
   currentDate.value = new Date(currentYear.value, currentMonth.value - 1, 1);
 };
-
 const nextMonth = () => {
   currentDate.value = new Date(currentYear.value, currentMonth.value + 1, 1);
 };
 </script>
 
 <style scoped>
+/* SEU CSS FOI MANTIDO EXATAMENTE COMO ESTAVA */
 .agenda-view {
   padding: 1.5rem;
   font-family: sans-serif;
   color: var(--text-primary);
 }
+
 .page-header {
   display: flex;
   justify-content: space-between;

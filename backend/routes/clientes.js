@@ -34,18 +34,15 @@ router.get('/:id', authMiddleware, async (req, res) => {
 router.post('/', authMiddleware, async (req, res) => {
   try {
     const { nome, email, telefone } = req.body;
-
     if (!nome) {
       return res.status(400).json({ message: 'O nome do cliente é obrigatório.' });
     }
-    
     if (email) {
       const emailExistente = await pool.query('SELECT id FROM clientes WHERE email = $1', [email]);
       if (emailExistente.rows.length > 0) {
         return res.status(409).json({ message: 'Este email já está cadastrado em outro cliente.' });
       }
     }
-
     const query = 'INSERT INTO clientes (nome, email, telefone) VALUES ($1, $2, $3) RETURNING *';
     const values = [nome, email, telefone];
     const { rows } = await pool.query(query, values);
@@ -61,22 +58,18 @@ router.put('/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     const { nome, email, telefone } = req.body;
-
     if (!nome) {
       return res.status(400).json({ message: 'O nome do cliente é obrigatório.' });
     }
-
     if (email) {
       const emailExistente = await pool.query('SELECT id FROM clientes WHERE email = $1 AND id != $2', [email, id]);
       if (emailExistente.rows.length > 0) {
         return res.status(409).json({ message: 'Este email já está cadastrado em outro cliente.' });
       }
     }
-    
     const query = 'UPDATE clientes SET nome = $1, email = $2, telefone = $3 WHERE id = $4 RETURNING *';
     const values = [nome, email, telefone, id];
     const { rows } = await pool.query(query, values);
-
     if (rows.length === 0) {
       return res.status(404).json({ message: 'Cliente não encontrado para atualização.' });
     }

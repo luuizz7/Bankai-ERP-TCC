@@ -120,10 +120,13 @@ CREATE TABLE IF NOT EXISTS produtos (
   comprimento NUMERIC(10, 2),
   controla_estoque BOOLEAN DEFAULT false,
   estoque_atual INT DEFAULT 0,
+  estoque_minimo INT DEFAULT 0, -- <-- CORRIGIDO
+  estoque_maximo INT DEFAULT 0, -- <-- CORRIGIDO
   localizacao VARCHAR(100),
   marca VARCHAR(100),
   descricao TEXT,
   garantia INT,
+  categoria_id INT REFERENCES categorias(id) ON DELETE SET NULL, -- <-- CORRIGIDO
   imagem TEXT
 );
 
@@ -131,7 +134,9 @@ CREATE TABLE IF NOT EXISTS estoque (
   id SERIAL PRIMARY KEY,
   produto_id INT REFERENCES produtos(id) ON DELETE SET NULL,
   quantidade INT NOT NULL,
-  tipo_movimento VARCHAR(20) NOT NULL CHECK (tipo_movimento IN ('entrada','saida')),
+  -- CORRIGIDO: Adicionado 'balanco'
+  tipo_movimento VARCHAR(20) NOT NULL CHECK (tipo_movimento IN ('entrada', 'saida', 'balanco')),
+  observacao TEXT, -- <-- CORRIGIDO
   data_movimento TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -171,7 +176,8 @@ CREATE TABLE IF NOT EXISTS pedidos_venda (
 CREATE TABLE IF NOT EXISTS pedido_itens (
   id SERIAL PRIMARY KEY,
   pedido_id INT NOT NULL REFERENCES pedidos_venda(id) ON DELETE CASCADE,
-  produto_id INT REFERENCES produtos(id) ON DELETE SET NULL,
+  -- CORRIGIDO: Permite ser nulo para não bloquear a exclusão de produtos
+  produto_id INT REFERENCES produtos(id) ON DELETE SET NULL, 
   quantidade INT NOT NULL,
   preco_unitario NUMERIC(10, 2) NOT NULL
 );
@@ -185,13 +191,22 @@ CREATE TABLE IF NOT EXISTS orcamentos (
   total NUMERIC(10, 2) DEFAULT 0
 );
 
+CREATE TABLE IF NOT EXISTS compromissos (
+  id SERIAL PRIMARY KEY,
+  titulo VARCHAR(255) NOT NULL,
+  descricao TEXT,
+  data_inicio TIMESTAMPTZ NOT NULL,
+  data_fim TIMESTAMPTZ,
+  dia_inteiro BOOLEAN DEFAULT false,
+  usuario_id INT REFERENCES usuarios(id) ON DELETE CASCADE,
+  criado_em TIMESTAMPTZ DEFAULT NOW()
+);
+
 
 -- ========= INSERÇÕES INICIAIS (DADOS PADRÃO) =========
 
 INSERT INTO caixa_status (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
 INSERT INTO empresa_config (id, nome_fantasia) VALUES (1, 'BankaiERP') ON CONFLICT (id) DO NOTHING;
 INSERT INTO categorias (nome) VALUES ('Geral') ON CONFLICT (nome) DO NOTHING;
-
--- ADICIONADOS DE VOLTA: Registros padrão para Cliente e Vendedor
 INSERT INTO clientes (nome, email, telefone) VALUES ('Consumidor Final', 'consumidor@final.com', '000000000') ON CONFLICT (email) DO NOTHING;
 INSERT INTO vendedores (nome, email, telefone) VALUES ('Vendedor Padrão', 'vendedor@loja.com', '11987654321') ON CONFLICT (email) DO NOTHING;

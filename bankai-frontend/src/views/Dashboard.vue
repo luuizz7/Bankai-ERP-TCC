@@ -66,8 +66,11 @@
       <div class="main-content-grid">
         <div class="chart-container card">
           <h4>Vendas (Últimos 7 dias)</h4>
-          <div class="chart-placeholder">
-            <p>Gráfico aparecerá aqui</p>
+          <div class="chart-wrapper">
+            <LineChart v-if="stats && stats.vendasUltimos7Dias" :data="chartData" :options="chartOptions" />
+            <div v-else class="chart-placeholder">
+              <p>Sem dados de vendas para exibir no gráfico.</p>
+            </div>
           </div>
         </div>
         <div class="quick-actions-container card">
@@ -76,7 +79,8 @@
             <router-link to="/vendas/pdv" class="quick-action-btn">Novo Pedido de Venda</router-link>
             <router-link to="/cadastros/clientes" class="quick-action-btn">Adicionar Cliente</router-link>
             <router-link to="/financas/contas-a-pagar" class="quick-action-btn">Registrar Despesa</router-link>
-            <router-link to="/cadastros/produtos" class="quick-action-btn">Ver Estoque</router-link> </div>
+            <router-link to="/cadastros/produtos" class="quick-action-btn">Ver Estoque</router-link>
+          </div>
         </div>
       </div>
 
@@ -93,17 +97,17 @@
               <p class="no-results-text">Nenhuma venda registrada nos últimos 30 dias.</p>
           </div>
         </div>
-        <div class="card-footer">
-          </div>
+        
+
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-// SEU SCRIPT FOI MANTIDO EXATAMENTE IGUAL
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue'; // ADIÇÃO: 'computed'
 import { useAuth } from '../auth';
+import LineChart from '../components/LineChart.vue'; // ADIÇÃO: Importa o novo componente de gráfico
 
 const auth = useAuth();
 const stats = ref(null);
@@ -111,6 +115,54 @@ const loading = ref(true);
 const userName = ref('Usuário');
 
 const formatCurrency = (value) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0);
+
+// ADIÇÃO: LÓGICA PARA O GRÁFICO DE ONDA
+const chartData = computed(() => {
+  if (!stats.value || !stats.value.vendasUltimos7Dias) {
+    return { labels: [], datasets: [{ data: [] }] };
+  }
+  const labels = stats.value.vendasUltimos7Dias.map(d => 
+    new Date(d.data).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+  );
+  const data = stats.value.vendasUltimos7Dias.map(d => parseFloat(d.total));
+  return {
+    labels,
+    datasets: [
+      {
+        label: 'Vendas (R$)',
+        borderColor: '#f6993f',
+        pointRadius: 0,
+        tension: 0.4,
+        fill: true,
+        data,
+        backgroundColor: (context) => {
+            const ctx = context.chart.ctx;
+            const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+            gradient.addColorStop(0, 'rgba(246, 153, 63, 0.5)');
+            gradient.addColorStop(1, 'rgba(246, 153, 63, 0)');
+            return gradient;
+        },
+      },
+    ],
+  };
+});
+
+const chartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: { legend: { display: false } },
+  scales: {
+    y: { 
+        ticks: { color: '#a0aec0' },
+        grid: { color: 'rgba(160, 174, 192, 0.1)' },
+        min: 0 // <-- ADICIONE APENAS ESTA LINHA
+    },
+    x: { 
+        ticks: { color: '#a0aec0' },
+        grid: { display: false }
+    },
+  },
+};
 
 const fetchDashboardStats = async () => {
   loading.value = true;
@@ -138,7 +190,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* SEU CSS FOI MANTIDO EXATAMENTE IGUAL, COM UMA PEQUENA CORREÇÃO */
+/* SEU CSS FOI MANTIDO, COM UMA ADIÇÃO */
 .page-header {
   display: flex;
   justify-content: space-between;
@@ -171,7 +223,6 @@ h2 {
 }
 .stats-grid {
   display: grid;
-  /* CORRIGIDO: Garante 4 colunas em telas maiores, e quebra em telas menores */
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
@@ -208,7 +259,6 @@ h2 {
   justify-content: center;
   color: var(--text-secondary);
 }
-
 .card-icon-link {
   text-decoration: none;
 }
@@ -272,41 +322,6 @@ h2 {
 }
 .best-sellers-card {
   margin-top: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-.placeholder-content {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-.no-results-text {
-  color: var(--text-primary);
-  font-size: 1rem;
-  font-weight: 500;
-}
-.no-results-subtext {
-  color: var(--text-secondary);
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
-}
-.card-footer {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
-}
-.expand-details {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-.expand-details:hover {
-  color: var(--text-primary);
 }
 .top-products-list {
   display: flex;
@@ -330,5 +345,11 @@ h2 {
   padding: 4rem;
   color: var(--text-secondary);
   font-size: 1.2rem;
+}
+
+/* ADIÇÃO: Estilo para o container do gráfico */
+.chart-wrapper {
+  position: relative;
+  height: 300px;
 }
 </style>

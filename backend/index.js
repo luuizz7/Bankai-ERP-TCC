@@ -19,7 +19,8 @@ import usuariosRouter from './routes/usuarios.js';
 import vendedoresRouter from './routes/vendedores.js';
 import pedidosVendaRouter from './routes/pedidosVenda.js';
 import caixaRouter from './routes/caixa.js';
-import statsRouter from './routes/stats.js'; // <-- rota de estatísticas
+import statsRouter from './routes/stats.js';
+import agendaRouter from './routes/agenda.js'
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -52,6 +53,7 @@ app.use('/api/vendedores', vendedoresRouter);
 app.use('/api/pedidos-venda', pedidosVendaRouter);
 app.use('/api/caixa', caixaRouter);
 app.use('/api/stats', statsRouter);
+app.use('/api/agenda', agendaRouter);
 
 app.listen(port, () => {
   console.log(`✅ Servidor backend rodando na porta ${port}`);

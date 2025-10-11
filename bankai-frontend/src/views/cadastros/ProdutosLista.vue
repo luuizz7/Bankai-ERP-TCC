@@ -68,7 +68,7 @@
                 v-for="produto in produtos"
                 :key="produto.id"
                 class="clickable-row"
-                @click="abrirProdutoComAnimacao(produto.id)"
+                @click="abrirProdutoComAnimacao(produto.id)" 
               >
                 <td class="checkbox-cell" @click.stop>
                   <input type="checkbox" :value="produto.id" v-model="selectedProducts" />
@@ -105,6 +105,7 @@ const filtro = ref("");
 const produtos = ref([]);
 const estaCarregando = ref(true);
 const selectedProducts = ref([]);
+
 
 const tipoFiltro = ref('todos'); 
 const counts = ref({ todos: 0, simples: 0, materiaPrima: 0 });
@@ -186,6 +187,10 @@ const deleteSelectedProducts = async () => {
   }
 };
 
+const verHistorico = (id) => {
+  router.push(`/cadastros/produtos/historico/${id}`);
+};
+
 const abrirProdutoComAnimacao = (id) => {
   const cardBody = document.querySelector(".card-body");
   if (cardBody) {
@@ -196,6 +201,9 @@ const abrirProdutoComAnimacao = (id) => {
     router.push(`/cadastros/produtos/editar/${id}`);
   }, 180);
 };
+
+
+
 </script>
 
 <style scoped>

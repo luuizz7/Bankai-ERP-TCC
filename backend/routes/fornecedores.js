@@ -15,7 +15,6 @@ router.get('/', authMiddleware, async (req, res) => {
   }
 });
 
-// --- ROTA ADICIONADA ---
 // GET: Buscar um fornecedor por ID
 router.get('/:id', authMiddleware, async (req, res) => {
   try {
@@ -51,28 +50,23 @@ router.post('/', authMiddleware, async (req, res) => {
   }
 });
 
-// --- ROTA ADICIONADA ---
 // PUT: Atualizar um fornecedor existente
 router.put('/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     const { nome, cnpj, telefone, email } = req.body;
-
     if (!nome) {
       return res.status(400).json({ message: 'O nome do fornecedor é obrigatório.' });
     }
-
     if (cnpj) {
       const cnpjExistente = await pool.query('SELECT id FROM fornecedores WHERE cnpj = $1 AND id != $2', [cnpj, id]);
       if (cnpjExistente.rows.length > 0) {
         return res.status(409).json({ message: 'Este CNPJ já está cadastrado em outro fornecedor.' });
       }
     }
-    
     const query = 'UPDATE fornecedores SET nome = $1, cnpj = $2, telefone = $3, email = $4 WHERE id = $5 RETURNING *';
     const values = [nome, cnpj, telefone, email, id];
     const { rows } = await pool.query(query, values);
-
     if (rows.length === 0) {
       return res.status(404).json({ message: 'Fornecedor não encontrado para atualização.' });
     }
