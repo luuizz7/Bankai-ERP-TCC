@@ -146,7 +146,6 @@ const menuItems = ref([
       { name: 'Controle De Estoque', path: '/suprimentos/estoque' },
       { name: 'Ordem de Compra', path: '/suprimentos/ordens-compra' },
       { name: 'Notas de Entrada', path: '/suprimentos/notas-entrada' },
-      { name: 'Necessidade de Compra', path: '/suprimentos/necessidade-compra' },
     ]
   },
   {
