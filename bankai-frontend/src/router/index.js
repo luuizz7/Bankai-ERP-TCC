@@ -23,8 +23,8 @@ import ProdutoForm from '../views/cadastros/ProdutoForm.vue';
 import Estoque from '../views/suprimentos/Estoque.vue';
 import OrdensCompra from '../views/suprimentos/OrdensCompra.vue';
 import NotasEntrada from '../views/suprimentos/NotasEntrada.vue';
-import NecessidadeCompra from '../views/suprimentos/NecessidadeCompra.vue';
 import HistoricoEstoque from '../views/suprimentos/HistoricoEstoque.vue';
+import OrdemCompraDetalhe from '../views/suprimentos/OrdemCompraDetalhe.vue';
 
 
 // Imports de Vendas
@@ -83,7 +83,12 @@ const routes = [
   { path: '/suprimentos/estoque', name: 'estoque', component: Estoque },
   { path: '/suprimentos/ordens-compra', name: 'ordens-compra', component: OrdensCompra },
   { path: '/suprimentos/notas-entrada', name: 'notas-entrada', component: NotasEntrada },
-  { path: '/suprimentos/necessidade-compra', name: 'necessidade-compra', component: NecessidadeCompra },
+  {
+    path: '/suprimentos/ordens-compra/:id',
+    name: 'OrdemCompraDetalhe',
+    component: OrdemCompraDetalhe,
+    meta: { requiresAuth: true }
+  },
   {
     path: '/suprimentos/estoque/:id',
     name: 'HistoricoEstoque',

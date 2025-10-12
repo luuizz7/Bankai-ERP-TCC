@@ -20,7 +20,8 @@ import vendedoresRouter from './routes/vendedores.js';
 import pedidosVendaRouter from './routes/pedidosVenda.js';
 import caixaRouter from './routes/caixa.js';
 import statsRouter from './routes/stats.js';
-import agendaRouter from './routes/agenda.js'
+import agendaRouter from './routes/agenda.js';
+import ordemCompraRouter from './routes/ordemCompra.js'; // <-- 1. ADICIONADO O IMPORT
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -54,6 +55,7 @@ app.use('/api/pedidos-venda', pedidosVendaRouter);
 app.use('/api/caixa', caixaRouter);
 app.use('/api/stats', statsRouter);
 app.use('/api/agenda', agendaRouter);
+app.use('/api/ordem-compra', ordemCompraRouter); // <-- 2. ADICIONADO O REGISTRO DA ROTA
 
 app.listen(port, () => {
   console.log(`✅ Servidor backend rodando na porta ${port}`);
