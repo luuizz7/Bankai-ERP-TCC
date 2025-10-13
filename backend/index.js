@@ -55,7 +55,7 @@ app.use('/api/pedidos-venda', pedidosVendaRouter);
 app.use('/api/caixa', caixaRouter);
 app.use('/api/stats', statsRouter);
 app.use('/api/agenda', agendaRouter);
-app.use('/api/ordem-compra', ordemCompraRouter); // <-- 2. ADICIONADO O REGISTRO DA ROTA
+app.use('/api/ordem-compra', ordemCompraRouter);
 
 app.listen(port, () => {
   console.log(`✅ Servidor backend rodando na porta ${port}`);

@@ -185,4 +185,4 @@ h2 { font-size: 1.4rem; font-weight: 600; }
 .btn { border: none; padding: 0.6rem 1.2rem; border-radius: 6px; font-weight: 500; cursor: pointer; transition: filter 0.2s; text-decoration: none; display: inline-block; }
 .btn-primary { background-color: var(--accent-color); color: white; }
 .btn-danger { background-color: #EF4444; color: white; }
-</style>
+</style>_

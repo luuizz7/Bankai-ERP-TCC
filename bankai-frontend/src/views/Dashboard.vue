@@ -5,9 +5,6 @@
         <h2>Boa tarde, {{ userName }}</h2>
         <p class="text-secondary">Aqui está um resumo da sua empresa hoje.</p>
       </div>
-      <div class="actions">
-        <button class="btn btn-primary">Ver Relatórios</button>
-      </div>
     </header>
 
     <div v-if="loading" class="loading-state">Carregando dados do dashboard...</div>

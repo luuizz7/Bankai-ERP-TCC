@@ -168,8 +168,10 @@ const deleteSelectedProducts = async () => {
   if (!confirm(`Tem certeza que deseja excluir ${selectedProducts.value.length} produto(s)?`)) return;
 
   try {
-    const response = await fetch('http://localhost:5000/api/produtos/delete', {
-      method: 'POST',
+    // CORREÇÃO: A URL foi alterada para '/api/produtos'
+    const response = await fetch('http://localhost:5000/api/produtos', { 
+      // CORREÇÃO: O método foi alterado para 'DELETE'
+      method: 'DELETE', 
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${auth.token.value}`

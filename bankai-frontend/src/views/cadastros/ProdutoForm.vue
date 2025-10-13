@@ -46,7 +46,7 @@
             <label>Nome do Produto</label>
             <input type="text" v-model="produto.nome" />
           </div>
-          <div class="form-group col-2">
+          <div class="form-group col-3">
             <label>SKU</label>
             <input type="text" v-model="produto.sku" />
           </div>
@@ -54,7 +54,7 @@
             <label>GTIN</label>
             <input type="text" v-model="produto.gtin" />
           </div>
-          <div class="form-group col-4">
+          <div class="form-group col-3">
             <label>Origem (ICMS)</label>
             <select v-model="produto.origem">
               <option value="0">0 - Nacional</option>
@@ -68,17 +68,22 @@
               <option value="8">8 - Nacional CI > 70%</option>
             </select>
           </div>
-          <div class="form-group col-2">
+          <div class="form-group col-3">
             <label>NCM</label>
             <input type="text" v-model="produto.ncm" />
           </div>
-          <div class="form-group col-2">
+          <div class="form-group col-3">
             <label>CEST</label>
             <input type="text" v-model="produto.cest" />
           </div>
+          
+          <div class="form-group col-3">
+            <label>Preço de Custo (R$)</label>
+            <input type="number" step="0.01" v-model.number="produto.preco_custo" />
+          </div>
           <div class="form-group col-3">
             <label>Preço de Venda (R$)</label>
-            <input type="number" v-model="produto.preco_venda" />
+            <input type="number" step="0.01" v-model.number="produto.preco_venda" />
           </div>
         </div>
 
@@ -111,7 +116,6 @@
             <input type="number" v-model="produto.comprimento" />
           </div>
         </div>
-
         <div v-show="activeTab === 'estoque'" class="form-grid">
           <div class="form-group col-2">
             <label>Controlar Estoque?</label>
@@ -129,7 +133,6 @@
             <input type="text" v-model="produto.localizacao" />
           </div>
         </div>
-
         <div v-show="activeTab === 'dadosComplementares'" class="form-grid">
           <div class="form-group col-4">
             <label>Marca</label>
@@ -140,26 +143,20 @@
             <textarea v-model="produto.descricao" rows="4"></textarea>
           </div>
         </div>
-
         <div v-show="activeTab === 'imagens'" class="form-grid">
           <div class="form-group col-12">
             <label>Imagens do Produto</label>
             <input type="file" multiple @change="onFileChange" />
           </div>
-
           <div class="form-group col-12" v-if="previews.length">
             <div class="preview-list">
               <div v-for="(img, i) in previews" :key="i" class="preview-item">
                 <img :src="img" class="preview-img" />
-                <button type="button" class="btn-remove-img" @click="removerImagem(i)">
-                  ×
-                </button>
+                <button type="button" class="btn-remove-img" @click="removerImagem(i)">×</button>
               </div>
             </div>
           </div>
         </div>
-
-
         <div v-show="activeTab === 'garantia'" class="form-grid">
           <div class="form-group col-2">
             <label>Meses de Garantia</label>
@@ -174,11 +171,11 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useAuth } from '../../auth'; // <-- 1. IMPORTAR O useAuth
+import { useAuth } from '../../auth';
 
 const route = useRoute();
 const router = useRouter();
-const auth = useAuth(); // <-- 2. INICIAR O auth
+const auth = useAuth();
 const errorMessage = ref("");
 
 const tabs = [
@@ -189,11 +186,11 @@ const tabs = [
   { key: "imagens", label: "Imagens" },
   { key: "garantia", label: "Garantia" },
 ];
-
 const activeTab = ref("dadosGerais");
 
 const produto = reactive({
   tipo: "Simples", nome: "", sku: "", gtin: "", origem: "0", ncm: "", cest: "",
+  preco_custo: 0, // <-- CORREÇÃO: Propriedade 'preco_custo' adicionada
   preco_venda: 0, preco_promocional: 0, peso_liquido: 0, peso_bruto: 0,
   tipo_embalagem: "Pacote/Caixa", largura: 0, altura: 0, comprimento: 0,
   controla_estoque: false, estoque_atual: 0, estoque_minimo: 0, estoque_maximo: 0,
@@ -210,9 +207,11 @@ const formTitle = computed(() =>
 );
 
 onMounted(async () => {
-  if (route.params.id && route.params.id !== "novo" && route.params.id !== 'editar') {
+  if (route.params.id && route.params.id !== "novo") {
     try {
-      const response = await fetch(`http://localhost:5000/api/produtos/${route.params.id}`); // <-- CORRIGIDO: Adicionado /api/
+      const response = await fetch(`http://localhost:5000/api/produtos/${route.params.id}`, {
+        headers: { 'Authorization': `Bearer ${auth.token.value}` }
+      });
       if (!response.ok) throw new Error("Produto não encontrado");
       const data = await response.json();
       Object.assign(produto, data);
@@ -227,29 +226,21 @@ onMounted(async () => {
 });
 
 const removerImagem = (index) => {
-  // Remove do preview
   previews.value.splice(index, 1);
-
-  // Remove do array de arquivos caso seja um novo upload
   if (imageFiles.value[index]) imageFiles.value.splice(index, 1);
-
-  // Se for a imagem existente do produto
   if (!imageFiles.value.length && !previews.value.length) {
-    produto.imagem = null; // marca para remover no backend
+    produto.imagem = null;
   }
 };
 
-
 const salvarProduto = async () => {
   errorMessage.value = "";
-
   const formData = new FormData();
   for (const key in produto) {
     if (produto[key] !== null && key !== 'imagem') {
       formData.append(key, produto[key]);
     }
   }
-
   if (imageFiles.value[0]) {
     formData.append('imagem', imageFiles.value[0]);
   } else if (produto.imagem) {
@@ -258,30 +249,23 @@ const salvarProduto = async () => {
   
   const isNew = !route.params.id || route.params.id === "novo";
   const url = isNew
-    ? "http://localhost:5000/api/produtos" // <-- CORRIGIDO: Adicionado /api/
-    : `http://localhost:5000/api/produtos/${route.params.id}`; // <-- CORRIGIDO: Adicionado /api/
+    ? "http://localhost:5000/api/produtos"
+    : `http://localhost:5000/api/produtos/${route.params.id}`;
   const method = isNew ? "POST" : "PUT";
 
   try {
-    // v--- 3. CORREÇÃO PRINCIPAL AQUI ---v
     const response = await fetch(url, {
       method: method,
-      headers: {
-        'Authorization': `Bearer ${auth.token.value}` // <-- ADICIONADO HEADER DE AUTENTICAÇÃO
-      },
+      headers: { 'Authorization': `Bearer ${auth.token.value}` },
       body: formData,
     });
-
     if (!response.ok) {
       const errorData = await response.json();
-      errorMessage.value = errorData.message || `Falha ao salvar o produto (${response.status}).`;
-      return;
+      throw new Error(errorData.message || `Falha ao salvar o produto.`);
     }
-    
     router.push("/cadastros/produtos");
   } catch (err) {
-    console.error("Erro ao salvar produto:", err);
-    errorMessage.value = "Ocorreu um erro de conexão. Tente novamente.";
+    errorMessage.value = err.message || "Ocorreu um erro de conexão.";
   }
 };
 
@@ -524,5 +508,4 @@ const onFileChange = (e) => {
   align-items: center;
   justify-content: center;
 }
-
 </style>

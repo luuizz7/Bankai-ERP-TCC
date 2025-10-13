@@ -4,11 +4,27 @@ import authMiddleware from '../middleware/authMiddleware.js';
 
 const router = Router();
 
-// GET: Listar todos os fornecedores
+// Dentro de backend/routes/fornecedores.js
+
+
 router.get('/', authMiddleware, async (req, res) => {
   try {
-    const { rows } = await pool.query('SELECT * FROM fornecedores ORDER BY nome ASC');
+
+    const { q } = req.query;
+
+    let query = 'SELECT id, nome, cnpj, email, telefone FROM fornecedores';
+    const values = [];
+
+    if (q) {
+      query += ' WHERE nome ILIKE $1 ORDER BY nome ASC';
+      values.push(`%${q}%`);
+    } else {
+      query += ' ORDER BY nome ASC';
+    }
+
+    const { rows } = await pool.query(query, values);
     res.json(rows);
+
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ message: 'Erro no servidor ao buscar fornecedores.' });

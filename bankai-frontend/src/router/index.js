@@ -1,67 +1,57 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuth } from '../auth';
 
-// Imports de Componentes Principais
-import Login from '../views/Login.vue';
-import Dashboard from '../views/Dashboard.vue';
-import Agenda from '../views/Agenda.vue';
-import MinhaConta from '../views/MinhaConta.vue';
+// O Vue Router 4 recomenda usar importações dinâmicas (lazy-loading) para todas as rotas
+// para melhor performance. Vou manter seu padrão, mas aplicá-lo de forma consistente.
+const Login = () => import('../views/Login.vue');
+const Dashboard = () => import('../views/Dashboard.vue');
+const Agenda = () => import('../views/Agenda.vue');
+const MinhaConta = () => import('../views/MinhaConta.vue');
+const Clientes = () => import('../views/cadastros/Clientes.vue');
+const ClienteForm = () => import('../views/cadastros/ClienteForm.vue');
+const FornecedorForm = () => import('../views/cadastros/FornecedorForm.vue');
+const Vendedores = () => import('../views/cadastros/Vendedores.vue');
+const VendedoresLista = () => import('../views/cadastros/VendedoresLista.vue');
+const VendedorForm = () => import('../views/cadastros/VendedorForm.vue');
+const Produtos = () => import('../views/cadastros/Produtos.vue');
+const ProdutosLista = () => import('../views/cadastros/ProdutosLista.vue');
+const ProdutoForm = () => import('../views/cadastros/ProdutoForm.vue');
+const Estoque = () => import('../views/suprimentos/Estoque.vue');
+const OrdensCompra = () => import('../views/suprimentos/OrdensCompra.vue');
+const OrdemCompraDetalhe = () => import('../views/suprimentos/OrdemCompraDetalhe.vue');
+const NotasEntrada = () => import('../views/suprimentos/NotasEntrada.vue');
+const HistoricoEstoque = () => import('../views/suprimentos/HistoricoEstoque.vue');
+const PDV = () => import('../views/vendas/PDV.vue');
+const Orcamentos = () => import('../views/vendas/Orcamentos.vue');
+const PedidosVenda = () => import('../views/vendas/PedidosVenda.vue');
+const Caixa = () => import('../views/financas/Caixa.vue');
+const ContasPagar = () => import('../views/financas/ContasPagar.vue');
+const ContasReceber = () => import('../views/financas/ContasReceber.vue');
+const Impostos = () => import('../views/financas/Impostos.vue');
+const FolhaPagamento = () => import('../views/financas/FolhaPagamento.vue');
+const UsuariosLista = () => import('../views/configuracoes/UsuariosLista.vue');
+const UsuarioForm = () => import('../views/configuracoes/UsuarioForm.vue');
 
-// Imports de Cadastros
-import Clientes from '../views/cadastros/Clientes.vue';
-import ClienteForm from '../views/cadastros/ClienteForm.vue';
-import Fornecedores from '../views/cadastros/Fornecedores.vue';
-import FornecedorForm from '../views/cadastros/FornecedorForm.vue';
-import Vendedores from '../views/cadastros/Vendedores.vue';
-import VendedoresLista from '../views/cadastros/VendedoresLista.vue';
-import VendedorForm from '../views/cadastros/VendedorForm.vue';
-import Produtos from '../views/cadastros/Produtos.vue';
-import ProdutosLista from '../views/cadastros/ProdutosLista.vue';
-import ProdutoForm from '../views/cadastros/ProdutoForm.vue';
-
-// Imports de Suprimentos
-import Estoque from '../views/suprimentos/Estoque.vue';
-import OrdensCompra from '../views/suprimentos/OrdensCompra.vue';
-import NotasEntrada from '../views/suprimentos/NotasEntrada.vue';
-import HistoricoEstoque from '../views/suprimentos/HistoricoEstoque.vue';
-import OrdemCompraDetalhe from '../views/suprimentos/OrdemCompraDetalhe.vue';
-
-
-// Imports de Vendas
-import PDV from '../views/vendas/PDV.vue';
-import Orcamentos from '../views/vendas/Orcamentos.vue';
-import PedidosVenda from '../views/vendas/PedidosVenda.vue';
-
-// Imports de Finanças
-import Caixa from '../views/financas/Caixa.vue';
-import ContasPagar from '../views/financas/ContasPagar.vue';
-import ContasReceber from '../views/financas/ContasReceber.vue';
-import Impostos from '../views/financas/Impostos.vue';
-import FolhaPagamento from '../views/financas/FolhaPagamento.vue';
-
-// Imports de Configurações
-import UsuariosLista from '../views/configuracoes/UsuariosLista.vue';
-import UsuarioForm from '../views/configuracoes/UsuarioForm.vue';
 
 const routes = [
   { path: '/login', name: 'login', component: Login, meta: { public: true } },
   { path: '/', redirect: '/dashboard' },
-  { path: '/dashboard', name: 'dashboard', component: Dashboard },
-  { path: '/agenda', name: 'agenda', component: Agenda },
-  { path: '/configuracoes', name: 'configuracoes', component: MinhaConta },
+  { path: '/dashboard', name: 'dashboard', component: Dashboard, meta: { requiresAuth: true } },
+  { path: '/agenda', name: 'agenda', component: Agenda, meta: { requiresAuth: true } },
+  { path: '/configuracoes', name: 'configuracoes', component: MinhaConta, meta: { requiresAuth: true } },
   
   // --- ROTAS DE CADASTROS ---
-  { path: '/cadastros/clientes', name: 'clientes', component: Clientes },
-  { path: '/cadastros/clientes/novo', name: 'NovoCliente', component: ClienteForm },
-  { path: '/cadastros/clientes/editar/:id', name: 'EditarCliente', component: ClienteForm },
+  { path: '/cadastros/clientes', name: 'clientes', component: Clientes, meta: { requiresAuth: true } },
+  { path: '/cadastros/clientes/novo', name: 'NovoCliente', component: ClienteForm, meta: { requiresAuth: true } },
+  { path: '/cadastros/clientes/editar/:id', name: 'EditarCliente', component: ClienteForm, meta: { requiresAuth: true } },
 
-  // A rota de fornecedores agora é acessada pela aba na tela de clientes, mas os formulários precisam de rotas diretas
-  { path: '/cadastros/fornecedores/novo', name: 'NovoFornecedor', component: FornecedorForm },
-  { path: '/cadastros/fornecedores/editar/:id', name: 'EditarFornecedor', component: FornecedorForm },
+  { path: '/cadastros/fornecedores/novo', name: 'NovoFornecedor', component: FornecedorForm, meta: { requiresAuth: true } },
+  { path: '/cadastros/fornecedores/editar/:id', name: 'EditarFornecedor', component: FornecedorForm, meta: { requiresAuth: true } },
 
   {
     path: '/cadastros/vendedores',
     component: Vendedores,
+    meta: { requiresAuth: true },
     children: [
       { path: '', name: 'vendedores-lista', component: VendedoresLista },
       { path: 'novo', name: 'vendedor-novo', component: VendedorForm },
@@ -72,6 +62,7 @@ const routes = [
   {
     path: '/cadastros/produtos',
     component: Produtos,
+    meta: { requiresAuth: true },
     children: [
       { path: '', name: 'produtos-lista', component: ProdutosLista },
       { path: 'novo', name: 'produto-novo', component: ProdutoForm },
@@ -80,15 +71,8 @@ const routes = [
   },
 
   // --- ROTAS DE SUPRIMENTOS ---
-  { path: '/suprimentos/estoque', name: 'estoque', component: Estoque },
-  { path: '/suprimentos/ordens-compra', name: 'ordens-compra', component: OrdensCompra },
-  { path: '/suprimentos/notas-entrada', name: 'notas-entrada', component: NotasEntrada },
-  {
-    path: '/suprimentos/ordens-compra/:id',
-    name: 'OrdemCompraDetalhe',
-    component: OrdemCompraDetalhe,
-    meta: { requiresAuth: true }
-  },
+  { path: '/suprimentos/estoque', name: 'estoque', component: Estoque, meta: { requiresAuth: true } },
+  { path: '/suprimentos/notas-entrada', name: 'notas-entrada', component: NotasEntrada, meta: { requiresAuth: true } },
   {
     path: '/suprimentos/estoque/:id',
     name: 'HistoricoEstoque',
@@ -96,21 +80,37 @@ const routes = [
     meta: { requiresAuth: true }
   },
 
+  // --- ALTERAÇÕES APLICADAS AQUI ---
+  { 
+    path: '/suprimentos/ordens-compra', 
+    name: 'ordens-compra', 
+    component: OrdensCompra,
+    meta: { requiresAuth: true } 
+  },
+  {
+    // Esta única rota agora lida com '/nova' e '/:id' (ex: /1, /2, etc.)
+    path: '/suprimentos/ordens-compra/:id',
+    name: 'ordem-compra-detalhe', // Nome da rota corrigido para um padrão
+    component: OrdemCompraDetalhe,
+    meta: { requiresAuth: true }
+  },
+  // --- FIM DAS ALTERAÇÕES ---
+
   // --- ROTAS DE VENDAS ---
-  { path: '/vendas/pdv', name: 'pdv', component: PDV },
-  { path: '/vendas/orcamentos', name: 'orcamentos', component: Orcamentos },
-  { path: '/vendas/pedidos-venda', name: 'pedidos-venda', component: PedidosVenda },
+  { path: '/vendas/pdv', name: 'pdv', component: PDV, meta: { requiresAuth: true } },
+  { path: '/vendas/orcamentos', name: 'orcamentos', component: Orcamentos, meta: { requiresAuth: true } },
+  { path: '/vendas/pedidos-venda', name: 'pedidos-venda', component: PedidosVenda, meta: { requiresAuth: true } },
 
   // --- ROTAS DE FINANÇAS ---
-  { path: '/financas/caixa', name: 'caixa', component: Caixa },
-  { path: '/financas/contas-pagar', name: 'contas-pagar', component: ContasPagar },
-  { path: '/financas/contas-receber', name: 'contas-receber', component: ContasReceber },
-  { path: '/financas/impostos', name: 'impostos', component: Impostos },
-  { path: '/financas/folha-pagamento', name: 'folha-pagamento', component: FolhaPagamento },
+  { path: '/financas/caixa', name: 'caixa', component: Caixa, meta: { requiresAuth: true } },
+  { path: '/financas/contas-pagar', name: 'contas-pagar', component: ContasPagar, meta: { requiresAuth: true } },
+  { path: '/financas/contas-receber', name: 'contas-receber', component: ContasReceber, meta: { requiresAuth: true } },
+  { path: '/financas/impostos', name: 'impostos', component: Impostos, meta: { requiresAuth: true } },
+  { path: '/financas/folha-pagamento', name: 'folha-pagamento', component: FolhaPagamento, meta: { requiresAuth: true } },
 
   // --- ROTAS DE CONFIGURAÇÕES ---
-  { path: '/configuracoes/usuarios', name: 'usuarios-lista', component: UsuariosLista },
-  { path: '/configuracoes/usuarios/novo', name: 'usuario-novo', component: UsuarioForm },
+  { path: '/configuracoes/usuarios', name: 'usuarios-lista', component: UsuariosLista, meta: { requiresAuth: true } },
+  { path: '/configuracoes/usuarios/novo', name: 'usuario-novo', component: UsuarioForm, meta: { requiresAuth: true } },
 ];
 
 const router = createRouter({
@@ -118,13 +118,14 @@ const router = createRouter({
   routes,
 });
 
-// Lógica de proteção de rotas (mantida como estava)
 router.beforeEach((to, from, next) => {
   const auth = useAuth();
   const isPublic = to.matched.some(record => record.meta.public);
+  const requiresAuth = !isPublic; // Simplificação da lógica
 
-  if (!isPublic && !auth.isAuthenticated.value) {
-    next({ name: 'login' });
+  if (requiresAuth && !auth.isAuthenticated.value) {
+    // Adiciona um redirecionamento para a página de login após o login bem-sucedido
+    next({ name: 'login', query: { redirect: to.fullPath } });
   } else {
     next();
   }

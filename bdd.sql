@@ -1,4 +1,4 @@
--- ========= TABELAS PRINCIPAIS (SEM DEPENDÊNCIAS) =========
+-- ========= TABELAS BASE (SEM DEPENDÊNCIAS DIRETAS) =========
 
 CREATE TABLE IF NOT EXISTS usuarios (
   id SERIAL PRIMARY KEY,
@@ -7,6 +7,35 @@ CREATE TABLE IF NOT EXISTS usuarios (
   senha VARCHAR(255) NOT NULL,
   cargo VARCHAR(50) DEFAULT 'vendedor',
   criado_em TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS clientes (
+  id SERIAL PRIMARY KEY,
+  nome VARCHAR(100) NOT NULL,
+  email VARCHAR(100) UNIQUE,
+  telefone VARCHAR(20),
+  criado_em TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS fornecedores (
+  id SERIAL PRIMARY KEY,
+  nome VARCHAR(100) NOT NULL,
+  cnpj VARCHAR(20) UNIQUE,
+  telefone VARCHAR(20),
+  email VARCHAR(100)
+);
+
+CREATE TABLE IF NOT EXISTS categorias (
+  id SERIAL PRIMARY KEY,
+  nome VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS vendedores (
+  id SERIAL PRIMARY KEY,
+  nome VARCHAR(100) NOT NULL,
+  email VARCHAR(100) UNIQUE,
+  telefone VARCHAR(20),
+  percentual_comissao NUMERIC(5, 2) DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS empresa_config (
@@ -30,37 +59,41 @@ CREATE TABLE IF NOT EXISTS empresa_config (
   regime_tributario VARCHAR(100)
 );
 
-CREATE TABLE IF NOT EXISTS clientes (
+-- ========= ADICIONANDO COLUNA COM AUTO-REFERÊNCIA =========
+
+ALTER TABLE categorias ADD COLUMN IF NOT EXISTS categoria_pai_id INT REFERENCES categorias(id) ON DELETE SET NULL;
+
+-- ========= TABELAS COM DEPENDÊNCIAS PRIMÁRIAS =========
+
+CREATE TABLE IF NOT EXISTS produtos (
   id SERIAL PRIMARY KEY,
+  tipo VARCHAR(50),
   nome VARCHAR(100) NOT NULL,
-  email VARCHAR(100) UNIQUE,
-  telefone VARCHAR(20),
-  criado_em TIMESTAMPTZ DEFAULT NOW()
+  sku VARCHAR(50) UNIQUE,
+  gtin VARCHAR(50),
+  origem VARCHAR(50),
+  ncm VARCHAR(20),
+  cest VARCHAR(20),
+  preco_custo NUMERIC(10, 2) DEFAULT 0, -- Coluna de custo agora existe
+  preco_venda NUMERIC(10, 2),
+  preco_promocional NUMERIC(10, 2),
+  peso_liquido NUMERIC(10, 3),
+  peso_bruto NUMERIC(10, 3),
+  tipo_embalagem VARCHAR(50),
+  largura NUMERIC(10, 2),
+  altura NUMERIC(10, 2),
+  comprimento NUMERIC(10, 2),
+  controla_estoque BOOLEAN DEFAULT false,
+  estoque_atual INT DEFAULT 0,
+  estoque_minimo INT DEFAULT 0,
+  estoque_maximo INT DEFAULT 0,
+  localizacao VARCHAR(100),
+  marca VARCHAR(100),
+  descricao TEXT,
+  garantia INT,
+  categoria_id INT REFERENCES categorias(id) ON DELETE SET NULL,
+  imagem TEXT
 );
-
-CREATE TABLE IF NOT EXISTS fornecedores (
-  id SERIAL PRIMARY KEY,
-  nome VARCHAR(100) NOT NULL,
-  cnpj VARCHAR(20) UNIQUE,
-  telefone VARCHAR(20),
-  email VARCHAR(100)
-);
-
-CREATE TABLE IF NOT EXISTS categorias (
-  id SERIAL PRIMARY KEY,
-  nome VARCHAR(50) NOT NULL UNIQUE,
-  categoria_pai_id INT REFERENCES categorias(id) ON DELETE SET NULL
-);
-
-CREATE TABLE IF NOT EXISTS vendedores (
-  id SERIAL PRIMARY KEY,
-  nome VARCHAR(100) NOT NULL,
-  email VARCHAR(100) UNIQUE,
-  telefone VARCHAR(20),
-  percentual_comissao NUMERIC(5, 2) DEFAULT 0
-);
-
--- ========= TABELAS DE CAIXA E FINANCEIRO =========
 
 CREATE TABLE IF NOT EXISTS caixa_status (
     id INT PRIMARY KEY DEFAULT 1,
@@ -98,63 +131,24 @@ CREATE TABLE IF NOT EXISTS contas_receber (
   status VARCHAR(20) DEFAULT 'pendente' CHECK (status IN ('pendente','recebido'))
 );
 
-
--- ========= TABELAS DE PRODUTOS E ESTOQUE =========
-
-CREATE TABLE IF NOT EXISTS produtos (
+CREATE TABLE IF NOT EXISTS compromissos (
   id SERIAL PRIMARY KEY,
-  tipo VARCHAR(50),
-  nome VARCHAR(100) NOT NULL,
-  sku VARCHAR(50) UNIQUE,
-  gtin VARCHAR(50),
-  origem VARCHAR(50),
-  ncm VARCHAR(20),
-  cest VARCHAR(20),
-  preco_venda NUMERIC(10, 2),
-  preco_promocional NUMERIC(10, 2),
-  peso_liquido NUMERIC(10, 3),
-  peso_bruto NUMERIC(10, 3),
-  tipo_embalagem VARCHAR(50),
-  largura NUMERIC(10, 2),
-  altura NUMERIC(10, 2),
-  comprimento NUMERIC(10, 2),
-  controla_estoque BOOLEAN DEFAULT false,
-  estoque_atual INT DEFAULT 0,
-  estoque_minimo INT DEFAULT 0, -- <-- CORRIGIDO
-  estoque_maximo INT DEFAULT 0, -- <-- CORRIGIDO
-  localizacao VARCHAR(100),
-  marca VARCHAR(100),
+  titulo VARCHAR(255) NOT NULL,
   descricao TEXT,
-  garantia INT,
-  categoria_id INT REFERENCES categorias(id) ON DELETE SET NULL, -- <-- CORRIGIDO
-  imagem TEXT
+  data_inicio TIMESTAMPTZ NOT NULL,
+  data_fim TIMESTAMPTZ,
+  dia_inteiro BOOLEAN DEFAULT false,
+  usuario_id INT REFERENCES usuarios(id) ON DELETE CASCADE,
+  criado_em TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS estoque (
   id SERIAL PRIMARY KEY,
   produto_id INT REFERENCES produtos(id) ON DELETE SET NULL,
   quantidade INT NOT NULL,
-  -- CORRIGIDO: Adicionado 'balanco'
   tipo_movimento VARCHAR(20) NOT NULL CHECK (tipo_movimento IN ('entrada', 'saida', 'balanco')),
-  observacao TEXT, -- <-- CORRIGIDO
+  observacao TEXT,
   data_movimento TIMESTAMPTZ DEFAULT NOW()
-);
-
--- ========= TABELAS DE COMPRAS E VENDAS =========
-
-CREATE TABLE IF NOT EXISTS ordem_compra (
-  id SERIAL PRIMARY KEY,
-  fornecedor_id INT REFERENCES fornecedores(id) ON DELETE SET NULL,
-  data_ordem TIMESTAMPTZ DEFAULT NOW(),
-  status VARCHAR(20) DEFAULT 'aberta' CHECK (status IN ('aberta','fechada','cancelada'))
-);
-
-CREATE TABLE IF NOT EXISTS notas_entrada (
-  id SERIAL PRIMARY KEY,
-  ordem_id INT REFERENCES ordem_compra(id) ON DELETE CASCADE,
-  produto_id INT REFERENCES produtos(id) ON DELETE SET NULL,
-  quantidade INT NOT NULL,
-  data_entrada TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS necessidade_compra (
@@ -162,24 +156,6 @@ CREATE TABLE IF NOT EXISTS necessidade_compra (
   produto_id INT REFERENCES produtos(id) ON DELETE CASCADE,
   quantidade_necessaria INT NOT NULL,
   data_registro TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS pedidos_venda (
-  id SERIAL PRIMARY KEY,
-  cliente_id INT REFERENCES clientes(id) ON DELETE SET NULL,
-  vendedor_id INT REFERENCES vendedores(id) ON DELETE SET NULL,
-  data_pedido TIMESTAMPTZ DEFAULT NOW(),
-  status VARCHAR(20) DEFAULT 'aberto' CHECK (status IN ('aberto','faturado','cancelado')),
-  total NUMERIC(10, 2) DEFAULT 0
-);
-
-CREATE TABLE IF NOT EXISTS pedido_itens (
-  id SERIAL PRIMARY KEY,
-  pedido_id INT NOT NULL REFERENCES pedidos_venda(id) ON DELETE CASCADE,
-  -- CORRIGIDO: Permite ser nulo para não bloquear a exclusão de produtos
-  produto_id INT REFERENCES produtos(id) ON DELETE SET NULL, 
-  quantidade INT NOT NULL,
-  preco_unitario NUMERIC(10, 2) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS orcamentos (
@@ -191,15 +167,48 @@ CREATE TABLE IF NOT EXISTS orcamentos (
   total NUMERIC(10, 2) DEFAULT 0
 );
 
-CREATE TABLE IF NOT EXISTS compromissos (
+-- ========= TABELAS DE COMPRAS E VENDAS (DEPENDÊNCIAS MÚLTIPLAS) =========
+
+CREATE TABLE IF NOT EXISTS ordem_compra (
   id SERIAL PRIMARY KEY,
-  titulo VARCHAR(255) NOT NULL,
-  descricao TEXT,
-  data_inicio TIMESTAMPTZ NOT NULL,
-  data_fim TIMESTAMPTZ,
-  dia_inteiro BOOLEAN DEFAULT false,
-  usuario_id INT REFERENCES usuarios(id) ON DELETE CASCADE,
-  criado_em TIMESTAMPTZ DEFAULT NOW()
+  fornecedor_id INT REFERENCES fornecedores(id) ON DELETE SET NULL,
+  data_ordem TIMESTAMPTZ DEFAULT NOW(),
+  status VARCHAR(20) DEFAULT 'aberta' CHECK (status IN ('aberta','atendida','cancelada'))
+);
+
+CREATE TABLE IF NOT EXISTS pedidos_venda (
+  id SERIAL PRIMARY KEY,
+  cliente_id INT REFERENCES clientes(id) ON DELETE SET NULL,
+  vendedor_id INT REFERENCES vendedores(id) ON DELETE SET NULL,
+  data_pedido TIMESTAMPTZ DEFAULT NOW(),
+  status VARCHAR(20) DEFAULT 'aberto' CHECK (status IN ('aberto','faturado','cancelado')),
+  total NUMERIC(10, 2) DEFAULT 0
+);
+
+-- ========= TABELAS DE ITENS (DEPENDEM DAS TABELAS ACIMA) =========
+
+CREATE TABLE IF NOT EXISTS ordem_compra_itens (
+  id SERIAL PRIMARY KEY,
+  ordem_compra_id INT NOT NULL REFERENCES ordem_compra(id) ON DELETE CASCADE,
+  produto_id INT NOT NULL REFERENCES produtos(id),
+  quantidade INT NOT NULL,
+  preco_custo NUMERIC(10, 2)
+);
+
+CREATE TABLE IF NOT EXISTS notas_entrada (
+  id SERIAL PRIMARY KEY,
+  ordem_id INT REFERENCES ordem_compra(id) ON DELETE CASCADE,
+  produto_id INT REFERENCES produtos(id) ON DELETE SET NULL,
+  quantidade INT NOT NULL,
+  data_entrada TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS pedido_itens (
+  id SERIAL PRIMARY KEY,
+  pedido_id INT NOT NULL REFERENCES pedidos_venda(id) ON DELETE CASCADE,
+  produto_id INT REFERENCES produtos(id) ON DELETE SET NULL, 
+  quantidade INT NOT NULL,
+  preco_unitario NUMERIC(10, 2) NOT NULL
 );
 
 
