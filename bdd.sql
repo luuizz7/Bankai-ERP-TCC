@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS produtos (
   origem VARCHAR(50),
   ncm VARCHAR(20),
   cest VARCHAR(20),
-  preco_custo NUMERIC(10, 2) DEFAULT 0, -- Coluna de custo agora existe
+  preco_custo NUMERIC(10, 2) DEFAULT 0, -- Coluna duplicada removida
   preco_venda NUMERIC(10, 2),
   preco_promocional NUMERIC(10, 2),
   peso_liquido NUMERIC(10, 3),
@@ -173,7 +173,8 @@ CREATE TABLE IF NOT EXISTS ordem_compra (
   id SERIAL PRIMARY KEY,
   fornecedor_id INT REFERENCES fornecedores(id) ON DELETE SET NULL,
   data_ordem TIMESTAMPTZ DEFAULT NOW(),
-  status VARCHAR(20) DEFAULT 'aberta' CHECK (status IN ('aberta','atendida','cancelada'))
+  -- A REGRA CORRIGIDA ESTÁ AQUI, DIRETAMENTE NA CRIAÇÃO DA COLUNA
+  status VARCHAR(20) DEFAULT 'aberta' CONSTRAINT ordem_compra_status_check CHECK (status IN ('aberta','atendida','cancelada'))
 );
 
 CREATE TABLE IF NOT EXISTS pedidos_venda (
@@ -190,7 +191,7 @@ CREATE TABLE IF NOT EXISTS pedidos_venda (
 CREATE TABLE IF NOT EXISTS ordem_compra_itens (
   id SERIAL PRIMARY KEY,
   ordem_compra_id INT NOT NULL REFERENCES ordem_compra(id) ON DELETE CASCADE,
-  produto_id INT NOT NULL REFERENCES produtos(id),
+  produto_id INT REFERENCES produtos(id) ON DELETE CASCADE,
   quantidade INT NOT NULL,
   preco_custo NUMERIC(10, 2)
 );
