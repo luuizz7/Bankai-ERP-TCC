@@ -1,154 +1,112 @@
-🧭 Bankai ERP — Sistema de Gestão Empresarial
-🧩 Sobre o Projeto
+# 🧩 Bankai ERP — Módulo de Produtos
 
-O Bankai ERP é um sistema de gestão empresarial desenvolvido como Trabalho de Conclusão de Curso (TCC).
-Seu objetivo é oferecer uma solução simples e completa para pequenas empresas, permitindo o controle de cadastros, estoque, finanças, vendas e suprimentos em um único ambiente.
+Bem-vindo ao **Bankai ERP**, um sistema de gestão empresarial desenvolvido para pequenas e médias empresas.  
+Este repositório contém o **módulo de produtos**, responsável pelo controle completo de cadastros, estoque, preços e imagens dos produtos.
 
-O sistema foi construído com uma arquitetura frontend + backend, integrando Vue.js no cliente e Node.js com PostgreSQL no servidor.
+---
 
-🚀 Funcionalidades Principais
-📦 Módulo de Cadastros
+## 🚀 Sobre o projeto
 
-Clientes
+O **Bankai ERP** é uma solução moderna e flexível voltada para a **gestão administrativa, financeira e operacional**.  
+Seu objetivo é oferecer um ambiente completo para controle de empresas de forma simples, rápida e eficiente.
 
-Fornecedores
+O módulo de **produtos** é uma das partes mais importantes do sistema, permitindo a criação, atualização e organização de todos os itens comercializados pela empresa.
 
-Categorias
+---
 
-Produtos (com upload de imagem)
+## 🛠️ Tecnologias utilizadas
 
-Vendedores
+### 🔹 Frontend
+- [Vue 3](https://vuejs.org/) — Framework JavaScript reativo e performático  
+- [Vite](https://vitejs.dev/) — Ferramenta de build ultrarrápida  
+- [Bootstrap 5](https://getbootstrap.com/) — Estilização responsiva e moderna  
+- [Pinia](https://pinia.vuejs.org/) — Gerenciamento de estado leve e simples  
+- [Axios](https://axios-http.com/) — Comunicação com a API  
+- [Vue Router](https://router.vuejs.org/) — Navegação entre as páginas
 
-💰 Módulo Financeiro
+### 🔹 Backend
+- [Node.js](https://nodejs.org/) — Plataforma para execução do servidor  
+- [Express.js](https://expressjs.com/) — Framework para rotas e APIs REST  
+- [PostgreSQL](https://www.postgresql.org/) — Banco de dados relacional  
+- [dotenv](https://github.com/motdotla/dotenv) — Configuração de variáveis de ambiente  
+- [pg](https://www.npmjs.com/package/pg) — Cliente PostgreSQL para Node.js
 
-Caixa
+---
 
-Contas a pagar
+---
 
-Contas a receber
+## 💡 Funcionalidades do módulo de produtos
 
-🧾 Módulo de Suprimentos
+- Cadastro completo de produtos  
+- Edição e exclusão de registros  
+- Upload e pré-visualização de imagens  
+- Controle de estoque (mínimo, máximo e atual)  
+- Informações fiscais (NCM, CEST, origem, GTIN, SKU)  
+- Campos complementares (peso, dimensões, embalagem, categoria, marca)  
+- Controle de preços (venda e promocional)  
+- Separação por abas: Dados Gerais, Dimensões, Estoque, Complementares, Imagens e Garantia  
 
-Controle de estoque
+---
 
-Notas de entrada
+## 🖥️ Interface do sistema
 
-Necessidades de compra
+A interface foi projetada com foco em **usabilidade e clareza**, utilizando um layout limpo e responsivo.  
+Cada seção do formulário é organizada em abas para facilitar o preenchimento e a navegação entre os dados do produto.
 
-Ordens de compra
+---
 
-🛒 Módulo de Vendas
+## 📸 Exemplo visual
 
-Orçamentos
+![Tela de produtos](./src/assets/produtos-preview.png)
 
-Pedidos de venda
+> Exemplo ilustrativo da tela de produtos após integração completa.
 
-🛠️ Tecnologias Utilizadas
-Frontend
+---
 
-⚡ Vue.js 3 — Framework progressivo para interfaces reativas
+## 🧩 Objetivo do módulo
 
-🎨 Bootstrap 5 — Estilização responsiva e moderna
+O módulo de produtos tem como propósito centralizar e facilitar o gerenciamento de informações relacionadas aos itens comercializados.  
+Com ele, é possível manter o **estoque atualizado**, aplicar **preços dinâmicos** e garantir a **organização fiscal e logística** da empresa.
 
-💾 Axios — Requisições HTTP entre frontend e backend
+---
 
-💻 Vite — Servidor de desenvolvimento rápido
+## 🔒 Banco de dados (PostgreSQL)
 
-Backend
+As principais tabelas relacionadas ao módulo são:
 
-🧠 Node.js — Plataforma JavaScript no lado do servidor
+- **produtos** — Armazena as informações básicas do produto  
+- **categorias** — Organiza os produtos em grupos lógicos  
+- **estoque** — Registra os movimentos de entrada e saída  
+- **notas_entrada** — Controla as entradas de mercadorias  
+- **ordem_compra** — Associa fornecedores e compras de produtos  
 
-🔥 Express.js — Framework minimalista e rápido para criação de APIs
+---
 
-🐘 PostgreSQL — Banco de dados relacional poderoso e seguro
+## ⚙️ Integração com o backend
 
-⚙️ pg (node-postgres) — Cliente PostgreSQL para Node
+O backend do projeto está sendo desenvolvido em **Node.js + Express** e conectado a um **banco de dados PostgreSQL**.  
+Toda a comunicação entre o frontend e o backend é realizada através de **requisições RESTful**.
 
-🔐 dotenv — Gerenciamento de variáveis de ambiente
+---
 
-🧰 Estrutura do Projeto
-Bankai-ERP-TCC/
-├── backend/
-│   ├── db.js               # Configuração do banco de dados (PostgreSQL)
-│   ├── index.js            # Servidor principal Express
-│   └── routes/             # Rotas da API (clientes, produtos, etc.)
-│
-├── bankai-frontend/
-│   ├── src/
-│   │   ├── views/          # Páginas do sistema (Produtos, Clientes, etc.)
-│   │   ├── components/     # Componentes Vue reutilizáveis
-│   │   └── main.js         # Arquivo principal do app Vue
-│
-├── bdd.sql                 # Script para criação das tabelas do banco
-├── package.json            # Dependências e scripts do projeto
-└── README.md               # Documentação do projeto
+## 🧑‍💻 Autor
 
-⚙️ Como Executar o Projeto Localmente
-🔧 Pré-requisitos
+**Courtesy**  
+Desenvolvedor e idealizador do projeto **Bankai ERP**  
+💼 Projeto acadêmico e de portfólio  
+📍 Jacareí — SP, Brasil  
 
-Certifique-se de ter instalado:
+---
 
-Node.js
- (versão 18+)
+## 📜 Licença
 
-PostgreSQL
+Este projeto está licenciado sob a **MIT License** — veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 
-Git
+---
 
-🧩 1. Clonar o repositório
-git clone https://github.com/luuizz7/Bankai-ERP-TCC.git
-cd Bankai-ERP-TCC
+## 🌟 Agradecimentos
 
-🗄️ 2. Configurar o Banco de Dados
+Agradecimentos especiais a todos os professores e colegas que contribuíram direta ou indiretamente com o desenvolvimento deste projeto.  
+Inspirado em boas práticas de design, arquitetura limpa e desenvolvimento full-stack moderno.
 
-Crie um banco no PostgreSQL e rode o script bdd.sql:
-
-\i bdd.sql
-
-
-Crie um arquivo .env dentro da pasta backend com o conteúdo:
-
-DB_USER=bankaiadmin
-DB_PASSWORD=admin
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=bankaierp
-PORT=5000
-
-🚀 3. Rodar o Backend
-cd backend
-npm install
-npm start
-
-
-A API rodará em:
-
-http://localhost:5000
-
-💻 4. Rodar o Frontend
-cd bankai-frontend
-npm install
-npm run dev
-
-
-O sistema estará disponível em:
-
-http://localhost:5173
-
-📸 Capturas de Tela (opcional)
-
-Adicione aqui prints das telas principais, como:
-
-Tela de produtos
-
-Tela de clientes
-
-Tela de login
-
-Dashboard
-
-👨‍💻 Autor
-
-Luiz Henrique Pereira
-Desenvolvedor e criador do Bankai ERP
-💼 Projeto desenvolvido como parte do TCC — IFSP Jacareí
+> “Um bom sistema não é aquele que faz tudo, mas aquele que faz o necessário com eficiência.” — *Courtesy*
