@@ -1,6 +1,6 @@
 # 🧩 Bankai ERP — Módulo de Produtos
 
-Bem-vindo ao **Bankai ERP**, um sistema de gestão empresarial desenvolvido para pequenas e médias empresas.  
+Bem-vindo ao **Bankai ERP**, um sistema de gestão empresarial desenvolvido para pequenas empresas.  
 Este repositório contém o **módulo de produtos**, responsável pelo controle completo de cadastros, estoque, preços e imagens dos produtos.
 
 ---
