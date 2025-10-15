@@ -1,24 +1,26 @@
-🧩 Bankai ERP — Módulo de Produtos
+# 🧩 Bankai ERP — Sistema de Gestão Empresarial
 
-Bem-vindo ao Bankai ERP, um sistema de gestão empresarial completo desenvolvido para pequenas empresas.
-Este repositório faz parte do projeto principal e representa o módulo de produtos, responsável por gerenciar cadastros, estoque, preços, categorias e imagens dos produtos.
+Bem-vindo ao **Bankai ERP**, um sistema completo de gestão empresarial desenvolvido para pequenas e médias empresas.  
+Este repositório contém o projeto principal, responsável por integrar diversos módulos que juntos oferecem um controle eficiente de toda a operação da empresa.
 
 O Bankai ERP é composto por diversos módulos integrados, incluindo:
 
-📦 Produtos — controle de itens, estoque e precificação;
+📦 **Produtos** — controle de itens, estoque e precificação;  
 
-💰 Financeiro — contas a pagar e a receber, fluxo de caixa e relatórios;
+💰 **Financeiro** — contas a pagar e a receber, fluxo de caixa e relatórios;  
 
-👥 Clientes e Fornecedores — cadastro e histórico de relacionamento;
+👥 **Clientes e Fornecedores** — cadastro e histórico de relacionamento;  
 
-🧾 Vendas e Notas — emissão e controle de transações comerciais;
+🧾 **Vendas e Notas** — emissão e controle de transações comerciais;  
 
-⚙️ Configurações e Usuários — gerenciamento de permissões e preferências do sistema.
+⚙️ **Configurações e Usuários** — gerenciamento de permissões e preferências do sistema.
+
+---
 
 ## 🚀 Sobre o projeto
 
-O **Bankai ERP** é uma solução moderna e flexível voltada para a **gestão administrativa, financeira e operacional**.  
-Seu objetivo é oferecer um ambiente completo para controle de empresas de forma simples, rápida e eficiente.
+O **Bankai ERP** é uma solução moderna e flexível voltada para a **gestão administrativa, financeira e operacional** de empresas.  
+Seu objetivo é oferecer um ambiente completo para controle de todas as áreas da empresa de forma simples, rápida e eficiente.
 
 ---
 
@@ -41,59 +43,52 @@ Seu objetivo é oferecer um ambiente completo para controle de empresas de forma
 
 ---
 
----
+## 💡 Funcionalidades principais do sistema
 
-## 💡 Funcionalidades do módulo de produtos
-
-- Cadastro completo de produtos  
-- Edição e exclusão de registros  
-- Upload e pré-visualização de imagens  
-- Controle de estoque (mínimo, máximo e atual)  
-- Informações fiscais (NCM, CEST, origem, GTIN, SKU)  
-- Campos complementares (peso, dimensões, embalagem, categoria, marca)  
-- Controle de preços (venda e promocional)  
-- Separação por abas: Dados Gerais, Dimensões, Estoque, Complementares, Imagens e Garantia  
+- Cadastro e gerenciamento de produtos, preço e estoque  
+- Controle financeiro completo: contas a pagar e receber e fluxo de caixa  
+- Gestão de clientes e fornecedores, incluindo histórico de relacionamento  
+- Emissão de vendas e ordens de compra  
+- Configuração de usuários e permissões de acesso  
+- Integração completa entre módulos para consistência e eficiência operacional
 
 ---
 
 ## 🖥️ Interface do sistema
 
 A interface foi projetada com foco em **usabilidade e clareza**, utilizando um layout limpo e responsivo.  
-Cada seção do formulário é organizada em abas para facilitar o preenchimento e a navegação entre os dados do produto.
+Cada módulo possui abas e seções organizadas para facilitar a navegação e o preenchimento de dados.
 
 ---
 
 ## 📸 Exemplo visual
 
-![Tela de produtos](./src/assets/produtos-preview.png)
+![Tela principal do sistema](./src/assets/sistema-preview.png)
 
-> Exemplo ilustrativo da tela de produtos após integração completa.
-
----
-
-## 🧩 Objetivo do módulo
-
-O módulo de produtos tem como propósito centralizar e facilitar o gerenciamento de informações relacionadas aos itens comercializados.  
-Com ele, é possível manter o **estoque atualizado**, aplicar **preços dinâmicos** e garantir a **organização fiscal e logística** da empresa.
+> Exemplo ilustrativo da tela principal do Bankai ERP após integração completa.
 
 ---
 
 ## 🔒 Banco de dados (PostgreSQL)
 
-As principais tabelas relacionadas ao módulo são:
+As principais tabelas do sistema incluem:
 
-- **produtos** — Armazena as informações básicas do produto  
-- **categorias** — Organiza os produtos em grupos lógicos  
-- **estoque** — Registra os movimentos de entrada e saída  
-- **notas_entrada** — Controla as entradas de mercadorias  
-- **ordem_compra** — Associa fornecedores e compras de produtos  
+- **produtos** — Armazena informações dos produtos  
+- **categorias** — Organiza produtos em grupos lógicos  
+- **estoque** — Registra entradas e saídas de mercadorias  
+- **clientes** — Cadastro e histórico de clientes  
+- **fornecedores** — Cadastro e histórico de fornecedores  
+- **vendas** — Registro de transações comerciais  
+- **notas_entrada** — Controle de entradas de mercadorias  
+- **ordem_compra** — Associação entre fornecedores e compras de produtos  
+- **usuarios** — Gerenciamento de acessos e permissões  
 
 ---
 
 ## ⚙️ Integração com o backend
 
-O backend do projeto está sendo desenvolvido em **Node.js + Express** e conectado a um **banco de dados PostgreSQL**.  
-Toda a comunicação entre o frontend e o backend é realizada através de **requisições RESTful**.
+O backend do projeto é desenvolvido em **Node.js + Express** e conectado a um **banco de dados PostgreSQL**.  
+Toda a comunicação entre frontend e backend é realizada através de **requisições RESTful**, garantindo integração completa entre os módulos.
 
 ---
 
@@ -109,4 +104,4 @@ Colaborador no desenvolvimento e na organização do projeto, contribuindo com i
 Auxiliou na documentação e revisão do código, garantindo padronização e boas práticas.  
 
 **Davi Lemes**  
-Responsável por testes e feedbacks de usabilidade durante o desenvolvimento.  
+Responsável por testes e feedbacks de usabilidade durante o desenvolvimento.
