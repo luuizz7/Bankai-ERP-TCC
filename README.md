@@ -1,16 +1,24 @@
-# 🧩 Bankai ERP — Módulo de Produtos
+🧩 Bankai ERP — Módulo de Produtos
 
-Bem-vindo ao **Bankai ERP**, um sistema de gestão empresarial desenvolvido para pequenas empresas.  
-Este repositório contém o **módulo de produtos**, responsável pelo controle completo de cadastros, estoque, preços e imagens dos produtos.
+Bem-vindo ao Bankai ERP, um sistema de gestão empresarial completo desenvolvido para pequenas empresas.
+Este repositório faz parte do projeto principal e representa o módulo de produtos, responsável por gerenciar cadastros, estoque, preços, categorias e imagens dos produtos.
 
----
+O Bankai ERP é composto por diversos módulos integrados, incluindo:
+
+📦 Produtos — controle de itens, estoque e precificação;
+
+💰 Financeiro — contas a pagar e a receber, fluxo de caixa e relatórios;
+
+👥 Clientes e Fornecedores — cadastro e histórico de relacionamento;
+
+🧾 Vendas e Notas — emissão e controle de transações comerciais;
+
+⚙️ Configurações e Usuários — gerenciamento de permissões e preferências do sistema.
 
 ## 🚀 Sobre o projeto
 
 O **Bankai ERP** é uma solução moderna e flexível voltada para a **gestão administrativa, financeira e operacional**.  
 Seu objetivo é oferecer um ambiente completo para controle de empresas de forma simples, rápida e eficiente.
-
-O módulo de **produtos** é uma das partes mais importantes do sistema, permitindo a criação, atualização e organização de todos os itens comercializados pela empresa.
 
 ---
 
