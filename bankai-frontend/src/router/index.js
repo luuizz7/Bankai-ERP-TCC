@@ -20,13 +20,14 @@ const Estoque = () => import('../views/suprimentos/Estoque.vue');
 const OrdensCompra = () => import('../views/suprimentos/OrdensCompra.vue');
 const OrdemCompraDetalhe = () => import('../views/suprimentos/OrdemCompraDetalhe.vue');
 const NotasEntrada = () => import('../views/suprimentos/NotasEntrada.vue');
-const NotasEntradaDetalhe = () => import('../views/suprimentos/NotasEntradaDetalhe.vue'); // <-- 1. ADICIONADO O IMPORT
+const NotasEntradaDetalhe = () => import('../views/suprimentos/NotasEntradaDetalhe.vue');
 const HistoricoEstoque = () => import('../views/suprimentos/HistoricoEstoque.vue');
 const PDV = () => import('../views/vendas/PDV.vue');
 const Orcamentos = () => import('../views/vendas/Orcamentos.vue');
 const PedidosVenda = () => import('../views/vendas/PedidosVenda.vue');
 const Caixa = () => import('../views/financas/Caixa.vue');
 const ContasPagar = () => import('../views/financas/ContasPagar.vue');
+const ContasPagarForm = () => import('../views/financas/ContasPagarForm.vue'); // <-- 1. ADICIONADO O IMPORT
 const ContasReceber = () => import('../views/financas/ContasReceber.vue');
 const Impostos = () => import('../views/financas/Impostos.vue');
 const FolhaPagamento = () => import('../views/financas/FolhaPagamento.vue');
@@ -45,10 +46,8 @@ const routes = [
   { path: '/cadastros/clientes', name: 'clientes', component: Clientes, meta: { requiresAuth: true } },
   { path: '/cadastros/clientes/novo', name: 'NovoCliente', component: ClienteForm, meta: { requiresAuth: true } },
   { path: '/cadastros/clientes/editar/:id', name: 'EditarCliente', component: ClienteForm, meta: { requiresAuth: true } },
-
   { path: '/cadastros/fornecedores/novo', name: 'NovoFornecedor', component: FornecedorForm, meta: { requiresAuth: true } },
   { path: '/cadastros/fornecedores/editar/:id', name: 'EditarFornecedor', component: FornecedorForm, meta: { requiresAuth: true } },
-
   {
     path: '/cadastros/vendedores',
     component: Vendedores,
@@ -71,18 +70,15 @@ const routes = [
     ],
   },
 
-  // --- ROTAS DE SUPRIMENTOS (Seu código original, com a adição) ---
+  // --- ROTAS DE SUPRIMENTOS (Seu código original, 100% intacto) ---
   { path: '/suprimentos/estoque', name: 'estoque', component: Estoque, meta: { requiresAuth: true } },
   { path: '/suprimentos/notas-entrada', name: 'notas-entrada', component: NotasEntrada, meta: { requiresAuth: true } },
-
-  // <-- 2. ADICIONADA A ROTA PARA OS DETALHES DA NOTA DE ENTRADA ---<<
   {
-    path: '/suprimentos/notas-entrada/:id', // Lida com '/nova' e '/1', etc.
+    path: '/suprimentos/notas-entrada/:id',
     name: 'notas-entrada-detalhe',
     component: NotasEntradaDetalhe,
     meta: { requiresAuth: true }
   },
-
   {
     path: '/suprimentos/estoque/:id',
     name: 'HistoricoEstoque',
@@ -107,9 +103,18 @@ const routes = [
   { path: '/vendas/orcamentos', name: 'orcamentos', component: Orcamentos, meta: { requiresAuth: true } },
   { path: '/vendas/pedidos-venda', name: 'pedidos-venda', component: PedidosVenda, meta: { requiresAuth: true } },
 
-  // --- ROTAS DE FINANÇAS (Seu código original, 100% intacto) ---
+  // --- ROTAS DE FINANÇAS (Seu código original com a adição) ---
   { path: '/financas/caixa', name: 'caixa', component: Caixa, meta: { requiresAuth: true } },
   { path: '/financas/contas-pagar', name: 'contas-pagar', component: ContasPagar, meta: { requiresAuth: true } },
+  
+  // <-- 2. ADICIONADA A ROTA PARA O FORMULÁRIO DE NOVA CONTA ---<<
+  {
+    path: '/financas/contas-pagar/nova',
+    name: 'nova-conta-pagar',
+    component: ContasPagarForm,
+    meta: { requiresAuth: true }
+  },
+  
   { path: '/financas/contas-receber', name: 'contas-receber', component: ContasReceber, meta: { requiresAuth: true } },
   { path: '/financas/impostos', name: 'impostos', component: Impostos, meta: { requiresAuth: true } },
   { path: '/financas/folha-pagamento', name: 'folha-pagamento', component: FolhaPagamento, meta: { requiresAuth: true } },
