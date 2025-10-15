@@ -4,7 +4,35 @@ import authMiddleware from '../middleware/authMiddleware.js';
 
 const router = Router();
 
-// ROTA PARA A VISÃO GERAL DO ESTOQUE
+// ROTA ADICIONADA: Listar TODAS as movimentações de estoque (para a nova tela de histórico)
+router.get('/', authMiddleware, async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        e.id,
+        e.data_movimento,
+        e.tipo_movimento,
+        e.quantidade,
+        e.observacao,
+        p.nome as produto_nome,
+        p.sku as produto_sku
+      FROM 
+        estoque e
+      LEFT JOIN 
+        produtos p ON e.produto_id = p.id
+      ORDER BY 
+        e.data_movimento DESC;
+    `;
+    const { rows } = await pool.query(query);
+    res.json(rows);
+  } catch (err) {
+    console.error('Erro ao buscar histórico de estoque:', err.message);
+    res.status(500).json({ message: 'Erro no servidor ao buscar histórico de estoque.' });
+  }
+});
+
+
+// ROTA ORIGINAL: Para a visão geral do estoque (mantida 100% intacta)
 router.get('/visao-geral', authMiddleware, async (req, res) => {
   try {
     const { q } = req.query;
@@ -23,7 +51,7 @@ router.get('/visao-geral', authMiddleware, async (req, res) => {
   }
 });
 
-// ROTA PARA O HISTÓRICO DE MOVIMENTAÇÕES DE UM PRODUTO
+// ROTA ORIGINAL: Para o histórico de um produto específico (mantida 100% intacta)
 router.get('/historico/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
@@ -42,7 +70,7 @@ router.get('/historico/:id', authMiddleware, async (req, res) => {
   }
 });
 
-// ROTA PARA FAZER UM LANÇAMENTO MANUAL DE ESTOQUE
+// ROTA ORIGINAL: Para lançamento manual (mantida 100% intacta)
 router.post('/lancamento', authMiddleware, async (req, res) => {
     const { produto_id, tipo_movimento, quantidade, observacao } = req.body;
     if (!produto_id || !tipo_movimento || quantidade === null || quantidade === undefined) {

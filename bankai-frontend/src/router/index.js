@@ -20,6 +20,7 @@ const Estoque = () => import('../views/suprimentos/Estoque.vue');
 const OrdensCompra = () => import('../views/suprimentos/OrdensCompra.vue');
 const OrdemCompraDetalhe = () => import('../views/suprimentos/OrdemCompraDetalhe.vue');
 const NotasEntrada = () => import('../views/suprimentos/NotasEntrada.vue');
+const NotasEntradaDetalhe = () => import('../views/suprimentos/NotasEntradaDetalhe.vue'); // <-- 1. ADICIONADO O IMPORT
 const HistoricoEstoque = () => import('../views/suprimentos/HistoricoEstoque.vue');
 const PDV = () => import('../views/vendas/PDV.vue');
 const Orcamentos = () => import('../views/vendas/Orcamentos.vue');
@@ -40,7 +41,7 @@ const routes = [
   { path: '/agenda', name: 'agenda', component: Agenda, meta: { requiresAuth: true } },
   { path: '/configuracoes', name: 'configuracoes', component: MinhaConta, meta: { requiresAuth: true } },
   
-  // --- ROTAS DE CADASTROS ---
+  // --- ROTAS DE CADASTROS (Seu código original, 100% intacto) ---
   { path: '/cadastros/clientes', name: 'clientes', component: Clientes, meta: { requiresAuth: true } },
   { path: '/cadastros/clientes/novo', name: 'NovoCliente', component: ClienteForm, meta: { requiresAuth: true } },
   { path: '/cadastros/clientes/editar/:id', name: 'EditarCliente', component: ClienteForm, meta: { requiresAuth: true } },
@@ -70,17 +71,24 @@ const routes = [
     ],
   },
 
-  // --- ROTAS DE SUPRIMENTOS ---
+  // --- ROTAS DE SUPRIMENTOS (Seu código original, com a adição) ---
   { path: '/suprimentos/estoque', name: 'estoque', component: Estoque, meta: { requiresAuth: true } },
   { path: '/suprimentos/notas-entrada', name: 'notas-entrada', component: NotasEntrada, meta: { requiresAuth: true } },
+
+  // <-- 2. ADICIONADA A ROTA PARA OS DETALHES DA NOTA DE ENTRADA ---<<
+  {
+    path: '/suprimentos/notas-entrada/:id', // Lida com '/nova' e '/1', etc.
+    name: 'notas-entrada-detalhe',
+    component: NotasEntradaDetalhe,
+    meta: { requiresAuth: true }
+  },
+
   {
     path: '/suprimentos/estoque/:id',
     name: 'HistoricoEstoque',
     component: HistoricoEstoque,
     meta: { requiresAuth: true }
   },
-
-  // --- ALTERAÇÕES APLICADAS AQUI ---
   { 
     path: '/suprimentos/ordens-compra', 
     name: 'ordens-compra', 
@@ -88,27 +96,25 @@ const routes = [
     meta: { requiresAuth: true } 
   },
   {
-    // Esta única rota agora lida com '/nova' e '/:id' (ex: /1, /2, etc.)
     path: '/suprimentos/ordens-compra/:id',
-    name: 'ordem-compra-detalhe', // Nome da rota corrigido para um padrão
+    name: 'ordem-compra-detalhe',
     component: OrdemCompraDetalhe,
     meta: { requiresAuth: true }
   },
-  // --- FIM DAS ALTERAÇÕES ---
 
-  // --- ROTAS DE VENDAS ---
+  // --- ROTAS DE VENDAS (Seu código original, 100% intacto) ---
   { path: '/vendas/pdv', name: 'pdv', component: PDV, meta: { requiresAuth: true } },
   { path: '/vendas/orcamentos', name: 'orcamentos', component: Orcamentos, meta: { requiresAuth: true } },
   { path: '/vendas/pedidos-venda', name: 'pedidos-venda', component: PedidosVenda, meta: { requiresAuth: true } },
 
-  // --- ROTAS DE FINANÇAS ---
+  // --- ROTAS DE FINANÇAS (Seu código original, 100% intacto) ---
   { path: '/financas/caixa', name: 'caixa', component: Caixa, meta: { requiresAuth: true } },
   { path: '/financas/contas-pagar', name: 'contas-pagar', component: ContasPagar, meta: { requiresAuth: true } },
   { path: '/financas/contas-receber', name: 'contas-receber', component: ContasReceber, meta: { requiresAuth: true } },
   { path: '/financas/impostos', name: 'impostos', component: Impostos, meta: { requiresAuth: true } },
   { path: '/financas/folha-pagamento', name: 'folha-pagamento', component: FolhaPagamento, meta: { requiresAuth: true } },
 
-  // --- ROTAS DE CONFIGURAÇÕES ---
+  // --- ROTAS DE CONFIGURAÇÕES (Seu código original, 100% intacto) ---
   { path: '/configuracoes/usuarios', name: 'usuarios-lista', component: UsuariosLista, meta: { requiresAuth: true } },
   { path: '/configuracoes/usuarios/novo', name: 'usuario-novo', component: UsuarioForm, meta: { requiresAuth: true } },
 ];
@@ -118,13 +124,13 @@ const router = createRouter({
   routes,
 });
 
+// Sua lógica de beforeEach (100% intacta)
 router.beforeEach((to, from, next) => {
   const auth = useAuth();
   const isPublic = to.matched.some(record => record.meta.public);
-  const requiresAuth = !isPublic; // Simplificação da lógica
+  const requiresAuth = !isPublic;
 
   if (requiresAuth && !auth.isAuthenticated.value) {
-    // Adiciona um redirecionamento para a página de login após o login bem-sucedido
     next({ name: 'login', query: { redirect: to.fullPath } });
   } else {
     next();

@@ -47,23 +47,40 @@ router.get('/', authMiddleware, async (req, res) => {
 });
 
 
-// --- SUA ROTA ORIGINAL MANTIDA EXATAMENTE COMO ESTAVA ---
-// Rota para finalizar uma venda
+
+// Dentro de backend/routes/pedidos_venda.js
+
+// Dentro de backend/routes/pedidos_venda.js
+
 router.post('/', authMiddleware, async (req, res) => {
   const { cliente_id, vendedor_id, total, itens } = req.body;
   
-  // Validação básica
-  if (!cliente_id || !total || !itens || itens.length === 0) {
-    return res.status(400).json({ message: 'Dados da venda incompletos.' });
+  if (!itens || itens.length === 0) {
+    return res.status(400).json({ message: 'O pedido precisa ter pelo menos um item.' });
   }
 
   const client = await pool.connect();
 
   try {
-    // Inicia a transação
     await client.query('BEGIN');
 
-    // 1. Insere o pedido na tabela 'pedidos_venda'
+    // --- VERIFICAÇÃO DE ESTOQUE (NOVA LÓGICA) ---
+    for (const item of itens) {
+      const estoqueResult = await client.query(
+        'SELECT nome, estoque_atual, controla_estoque FROM produtos WHERE id = $1',
+        [item.id]
+      );
+      const produto = estoqueResult.rows[0];
+
+      // Se o produto controla estoque e a quantidade é insuficiente, bloqueia a venda
+      if (produto && produto.controla_estoque && produto.estoque_atual < item.quantidade) {
+        // Joga um erro que será capturado pelo 'catch', desfazendo a transação
+        throw new Error(`Estoque insuficiente para o produto "${produto.nome}". Disponível: ${produto.estoque_atual}, Pedido: ${item.quantidade}`);
+      }
+    }
+    // --- FIM DA VERIFICAÇÃO ---
+
+    // 1. Insere o pedido principal (sua lógica original, mantida)
     const pedidoQuery = `
       INSERT INTO pedidos_venda (cliente_id, vendedor_id, data_pedido, status, total)
       VALUES ($1, $2, NOW(), 'faturado', $3)
@@ -72,25 +89,33 @@ router.post('/', authMiddleware, async (req, res) => {
     const pedidoResult = await client.query(pedidoQuery, [cliente_id, vendedor_id, total]);
     const pedidoId = pedidoResult.rows[0].id;
 
-    // 2. Itera sobre os itens e os insere em 'pedido_itens' e atualiza o estoque
+    // 2. Itera sobre os itens para salvar, dar baixa e registrar histórico
     for (const item of itens) {
-      // Insere o item na tabela 'pedido_itens'
+      // Insere o item do pedido
       const itemQuery = `
         INSERT INTO pedido_itens (pedido_id, produto_id, quantidade, preco_unitario)
         VALUES ($1, $2, $3, $4);
       `;
       await client.query(itemQuery, [pedidoId, item.id, item.quantidade, item.preco_venda]);
 
-      // Atualiza o estoque na tabela 'produtos'
+      // Atualiza o estoque do produto
       const estoqueQuery = `
         UPDATE produtos
         SET estoque_atual = estoque_atual - $1
         WHERE id = $2 AND controla_estoque = true;
       `;
       await client.query(estoqueQuery, [item.quantidade, item.id]);
+      
+      // CORREÇÃO: Registra a movimentação com uma observação detalhada
+      const historicoQuery = `
+        INSERT INTO estoque (produto_id, quantidade, tipo_movimento, observacao)
+        VALUES ($1, $2, 'saida', $3)
+      `;
+      const observacao = `Saída por Venda PDV - Pedido #${pedidoId}`;
+      await client.query(historicoQuery, [item.id, item.quantidade, observacao]);
     }
-
-    // 3. (Opcional, mas recomendado) Registra a entrada no caixa
+    
+    // 3. Sua lógica de caixa (mantida)
     const caixaQuery = `
       INSERT INTO caixa_movimentacoes (tipo, valor, descricao, usuario_id)
       VALUES ('venda', $1, $2, $3);
@@ -98,18 +123,17 @@ router.post('/', authMiddleware, async (req, res) => {
     const descricaoVenda = `Venda referente ao Pedido #${pedidoId}`;
     await client.query(caixaQuery, [total, descricaoVenda, req.user.id]);
 
-    // Confirma a transação
     await client.query('COMMIT');
 
     res.status(201).json({ message: 'Venda finalizada com sucesso!', pedidoId: pedidoId });
 
   } catch (error) {
-    // Em caso de erro, desfaz a transação
+    // Se qualquer erro ocorrer (incluindo o de estoque insuficiente), desfaz tudo
     await client.query('ROLLBACK');
-    console.error('Erro ao finalizar venda:', error);
-    res.status(500).json({ message: 'Erro interno ao processar a venda.' });
+    console.error('Erro ao finalizar venda:', error.message);
+    // Retorna a mensagem de erro específica para o frontend
+    res.status(409).json({ message: error.message }); // 409 Conflict é mais apropriado para falha de regra de negócio
   } finally {
-    // Libera o cliente da pool
     client.release();
   }
 });

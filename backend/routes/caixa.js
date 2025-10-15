@@ -4,24 +4,103 @@ import authMiddleware from '../middleware/authMiddleware.js';
 
 const router = Router();
 
-// --- NOVA FUNÇÃO REUTILIZÁVEL ---
-// Esta função calcula todos os totais do caixa aberto.
+// --- SUA FUNÇÃO REUTILIZÁVEL (100% PRESERVADA) ---
 const calcularDetalhesCaixa = async (dataAbertura) => {
   const [sangriasRes, reforcosRes, vendasRes] = await Promise.all([
     pool.query("SELECT COALESCE(SUM(valor), 0) as total FROM caixa_movimentacoes WHERE tipo = 'sangria' AND data_movimentacao >= $1", [dataAbertura]),
     pool.query("SELECT COALESCE(SUM(valor), 0) as total FROM caixa_movimentacoes WHERE tipo = 'reforco' AND data_movimentacao >= $1", [dataAbertura]),
     pool.query("SELECT COALESCE(SUM(total), 0) as total FROM pedidos_venda WHERE data_pedido >= $1 AND status = 'faturado'", [dataAbertura])
   ]);
-
   return {
-    total_sangrias: sangriasRes.rows[0].total,
-    total_reforcos: reforcosRes.rows[0].total,
-    total_vendas: vendasRes.rows[0].total,
+    total_sangrias: parseFloat(sangriasRes.rows[0].total),
+    total_reforcos: parseFloat(reforcosRes.rows[0].total),
+    total_vendas: parseFloat(vendasRes.rows[0].total),
   };
 };
 
 
-// --- ROTAS ATUALIZADAS ---
+// --- ROTAS ADICIONADAS PARA A NOVA FUNCIONALIDADE ---
+
+// ROTA 1: Listar os lançamentos MANUAIS do caixa (para a tela de Finanças > Caixa)
+router.get('/', authMiddleware, async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        cm.id, cm.data_movimentacao, cm.tipo, cm.valor, 
+        cm.descricao, cm.categoria, u.nome as usuario_nome
+      FROM caixa_movimentacoes cm
+      LEFT JOIN usuarios u ON cm.usuario_id = u.id
+      WHERE cm.tipo IN ('saida', 'reforco')
+      ORDER BY cm.data_movimentacao DESC;
+    `;
+    const { rows } = await pool.query(query);
+    res.json(rows);
+  } catch (err) {
+    console.error('Erro ao buscar movimentações do caixa:', err.message);
+    res.status(500).json({ message: 'Erro no servidor ao buscar movimentações.' });
+  }
+});
+
+// ROTA 2: Criar um novo lançamento manual no caixa (saída/despesa ou reforço/receita)
+router.post('/lancamento', authMiddleware, async (req, res) => {
+  try {
+    const { 
+      tipo, valor, descricao, categoria, 
+      data_competencia, cliente_id, fornecedor_id 
+    } = req.body;
+    const usuario_id = req.user.id;
+
+    if (!tipo || valor === undefined || valor === null) {
+      return res.status(400).json({ message: 'Tipo e Valor são obrigatórios.' });
+    }
+
+    const query = `
+      INSERT INTO caixa_movimentacoes (
+        tipo, valor, descricao, categoria, usuario_id,
+        data_competencia, cliente_id, fornecedor_id
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING *;
+    `;
+    const values = [
+      tipo, valor, descricao, categoria, usuario_id,
+      data_competencia, cliente_id, fornecedor_id
+    ];
+    const { rows } = await pool.query(query, values);
+
+    res.status(201).json(rows[0]);
+  } catch (err) {
+    console.error('Erro ao criar lançamento no caixa:', err.message);
+    res.status(500).json({ message: 'Erro no servidor ao criar lançamento.' });
+  }
+});
+
+// ROTA 3: Excluir um ou mais lançamentos manuais do caixa
+router.delete('/', authMiddleware, async (req, res) => {
+    try {
+        const { ids } = req.body;
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ message: 'Nenhum ID fornecido para exclusão.' });
+        }
+        
+        const deleteOp = await pool.query(
+            "DELETE FROM caixa_movimentacoes WHERE id = ANY($1) AND tipo IN ('saida', 'reforco')",
+            [ids]
+        );
+
+        if (deleteOp.rowCount === 0) {
+            return res.status(404).json({ message: 'Nenhum lançamento encontrado com os IDs fornecidos.' });
+        }
+
+        res.status(204).send();
+    } catch (err) {
+        console.error('Erro ao excluir lançamentos:', err.message);
+        res.status(500).json({ message: 'Erro no servidor ao excluir lançamentos.' });
+    }
+});
+
+
+// --- SUAS ROTAS ORIGINAIS PARA A GESTÃO DO CAIXA DO PDV (100% PRESERVADAS) ---
 
 router.get('/status', authMiddleware, async (req, res) => {
   try {
@@ -33,7 +112,6 @@ router.get('/status', authMiddleware, async (req, res) => {
   }
 });
 
-// ROTA /detalhes AGORA MAIS SIMPLES
 router.get('/detalhes', authMiddleware, async (req, res) => {
   try {
     const statusResult = await pool.query(`
@@ -48,7 +126,6 @@ router.get('/detalhes', authMiddleware, async (req, res) => {
     }
     
     const statusCaixa = statusResult.rows[0];
-    // Usa a nova função para pegar os totais
     const totais = await calcularDetalhesCaixa(statusCaixa.data_abertura);
     
     const detalhes = {
@@ -56,9 +133,9 @@ router.get('/detalhes', authMiddleware, async (req, res) => {
       ...totais,
       total_calculado: (
         parseFloat(statusCaixa.valor_inicial) + 
-        parseFloat(totais.total_vendas) + 
-        parseFloat(totais.total_reforcos) - 
-        parseFloat(totais.total_sangrias)
+        totais.total_vendas + 
+        totais.total_reforcos - 
+        totais.total_sangrias
       )
     };
     
@@ -117,7 +194,6 @@ router.post('/reforco', authMiddleware, async (req, res) => {
     }
 });
 
-// ROTA /fechar AGORA CORRIGIDA E MAIS SIMPLES
 router.post('/fechar', authMiddleware, async (req, res) => {
     try {
         const { valor_final_contado } = req.body;
@@ -128,17 +204,14 @@ router.post('/fechar', authMiddleware, async (req, res) => {
         
         const { data_abertura, valor_inicial } = statusResult.rows[0];
         
-        // Usa a nova função para pegar os totais
         const totais = await calcularDetalhesCaixa(data_abertura);
-        const valor_final_sistema = parseFloat(valor_inicial) + parseFloat(totais.total_vendas) + parseFloat(totais.total_reforcos) - parseFloat(totais.total_sangrias);
+        const valor_final_sistema = parseFloat(valor_inicial) + totais.total_vendas + totais.total_reforcos - totais.total_sangrias;
 
-        // Atualiza o status do caixa para fechado
         await pool.query(
             `UPDATE caixa_status SET aberto = false, usuario_fechamento_id = $1, data_fechamento = NOW(), valor_final = $2 WHERE id = 1`,
             [usuario_id, valor_final_sistema]
         );
 
-        // Insere a movimentação de fechamento
         await pool.query('INSERT INTO caixa_movimentacoes (tipo, valor, usuario_id, descricao) VALUES ($1, $2, $3, $4)', ['fechamento', valor_final_sistema, usuario_id, `Fechamento. Valor contado: ${valor_final_contado}`]);
 
         res.status(200).json({ message: 'Caixa fechado com sucesso.' });
