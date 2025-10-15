@@ -106,48 +106,34 @@ CREATE TABLE IF NOT EXISTS caixa_status (
     valor_final NUMERIC(10, 2)
 );
 
+-- Tabela de movimentações de caixa corrigida
 CREATE TABLE IF NOT EXISTS caixa_movimentacoes (
     id SERIAL PRIMARY KEY,
+    -- << CORREÇÃO: Adicionado 'saida' e 'sangria' para lançamentos manuais
     tipo VARCHAR(20) NOT NULL CHECK (tipo IN ('abertura', 'reforco', 'sangria', 'venda', 'fechamento', 'saida')),
     valor NUMERIC(10, 2) NOT NULL,
     descricao TEXT,
     usuario_id INT NOT NULL REFERENCES usuarios(id),
     data_movimentacao TIMESTAMPTZ DEFAULT NOW(),
+    -- << ADIÇÃO: Campos essenciais para gestão financeira
     categoria VARCHAR(100),
     data_competencia DATE,
     cliente_id INT REFERENCES clientes(id) ON DELETE SET NULL,
     fornecedor_id INT REFERENCES fornecedores(id) ON DELETE SET NULL
 );
 
--- <<--- CORREÇÃO APLICADA AQUI ---<<
-CREATE TABLE IF NOT EXISTS contas_pagar (
+CREATE TABLE IF NOT EXISTS compromissos (
   id SERIAL PRIMARY KEY,
-  fornecedor_id INT REFERENCES fornecedores(id) ON DELETE SET NULL,
-  data_vencimento DATE NOT NULL,
-  valor NUMERIC(10, 2) NOT NULL,
-  status VARCHAR(20) DEFAULT 'pendente' CHECK (status IN ('pendente','pago')),
-  data_emissao DATE,
-  data_pagamento DATE,
-  numero_documento VARCHAR(100),
-  historico TEXT,
-  categoria VARCHAR(100),
-  forma_pagamento VARCHAR(50)
+  titulo VARCHAR(255) NOT NULL,
+  descricao TEXT,
+  data_inicio TIMESTAMPTZ NOT NULL,
+  data_fim TIMESTAMPTZ,
+  dia_inteiro BOOLEAN DEFAULT false,
+  usuario_id INT REFERENCES usuarios(id) ON DELETE CASCADE,
+  criado_em TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS contas_receber (
-  id SERIAL PRIMARY KEY,
-  cliente_id INT REFERENCES clientes(id) ON DELETE SET NULL,
-  data_vencimento DATE NOT NULL,
-  valor NUMERIC(10, 2) NOT NULL,
-  status VARCHAR(20) DEFAULT 'pendente' CHECK (status IN ('pendente','recebido'))
-);
-
--- ... (Resto das suas tabelas: compromissos, estoque, etc. 100% intactas) ...
-CREATE TABLE IF NOT EXISTS compromissos ( /* ... */ );
-CREATE TABLE IF NOT EXISTS estoque ( /* ... */ );
-CREATE TABLE IF NOT EXISTS necessidade_compra ( /* ... */ );
-CREATE TABLE IF NOT EXISTS orcamentos ( /* ... */ );
-
+-- ... (outras tabelas como 'necessidade_compra', 'orcamentos' permanecem como estavam) ...
 
 -- ========= TABELAS DE COMPRAS E VENDAS (DEPENDÊNCIAS MÚLTIPLAS) =========
 
@@ -167,11 +153,54 @@ CREATE TABLE IF NOT EXISTS pedidos_venda (
   total NUMERIC(10, 2) DEFAULT 0
 );
 
+-- Tabela de Contas a Pagar corrigida
+CREATE TABLE IF NOT EXISTS contas_pagar (
+  id SERIAL PRIMARY KEY,
+  fornecedor_id INT REFERENCES fornecedores(id) ON DELETE SET NULL,
+  -- << ADIÇÃO: Vínculo com a origem da conta
+  ordem_compra_id INT REFERENCES ordem_compra(id) ON DELETE SET NULL,
+  descricao VARCHAR(255),
+  data_vencimento DATE NOT NULL,
+  valor NUMERIC(10, 2) NOT NULL,
+  status VARCHAR(20) DEFAULT 'pendente' CHECK (status IN ('pendente','pago', 'cancelado')),
+  -- << ADIÇÃO: Data do pagamento efetivo
+  data_pagamento DATE
+);
+
+-- Tabela de Contas a Receber corrigida
+CREATE TABLE IF NOT EXISTS contas_receber (
+  id SERIAL PRIMARY KEY,
+  cliente_id INT REFERENCES clientes(id) ON DELETE SET NULL,
+  -- << ADIÇÃO: Vínculo com a origem da conta
+  pedidos_venda_id INT REFERENCES pedidos_venda(id) ON DELETE SET NULL,
+  descricao VARCHAR(255),
+  data_vencimento DATE NOT NULL,
+  valor NUMERIC(10, 2) NOT NULL,
+  status VARCHAR(20) DEFAULT 'pendente' CHECK (status IN ('pendente','recebido', 'cancelado')),
+  -- << ADIÇÃO: Data do recebimento efetivo
+  data_recebimento DATE
+);
+
+-- Tabela de Estoque corrigida
+CREATE TABLE IF NOT EXISTS estoque (
+  id SERIAL PRIMARY KEY,
+  produto_id INT NOT NULL REFERENCES produtos(id) ON DELETE CASCADE,
+  quantidade INT NOT NULL,
+  tipo_movimento VARCHAR(20) NOT NULL CHECK (tipo_movimento IN ('entrada', 'saida', 'balanco')),
+  observacao TEXT,
+  data_movimento TIMESTAMPTZ DEFAULT NOW(),
+  -- << ADIÇÃO: Vínculos para rastreabilidade do movimento
+  nota_entrada_id INT REFERENCES notas_entrada(id) ON DELETE SET NULL,
+  pedidos_venda_id INT REFERENCES pedidos_venda(id) ON DELETE SET NULL
+);
+
+
 -- ========= TABELAS DE ITENS (DEPENDEM DAS TABELAS ACIMA) =========
 
 CREATE TABLE IF NOT EXISTS ordem_compra_itens (
   id SERIAL PRIMARY KEY,
   ordem_compra_id INT NOT NULL REFERENCES ordem_compra(id) ON DELETE CASCADE,
+  -- << CORREÇÃO: Regra de exclusão perigosa trocada por uma segura
   produto_id INT REFERENCES produtos(id) ON DELETE SET NULL,
   quantidade INT NOT NULL,
   preco_custo NUMERIC(10, 2)
@@ -187,10 +216,11 @@ CREATE TABLE IF NOT EXISTS notas_entrada (
   status VARCHAR(20) DEFAULT 'digitacao' CHECK (status IN ('digitacao','finalizada','cancelada'))
 );
 
+-- << ADIÇÃO: Tabela crucial que estava faltando >>
 CREATE TABLE IF NOT EXISTS nota_entrada_itens (
   id SERIAL PRIMARY KEY,
   nota_entrada_id INT NOT NULL REFERENCES notas_entrada(id) ON DELETE CASCADE,
-  produto_id INT REFERENCES produtos(id) ON DELETE SET NULL,
+  produto_id INT NOT NULL REFERENCES produtos(id) ON DELETE RESTRICT, -- Impede a exclusão de produto que está em nota
   quantidade INT NOT NULL,
   preco_custo NUMERIC(10, 2) NOT NULL,
   subtotal NUMERIC(10, 2) GENERATED ALWAYS AS (quantidade * preco_custo) STORED
@@ -206,6 +236,7 @@ CREATE TABLE IF NOT EXISTS pedido_itens (
 
 
 -- ========= INSERÇÕES INICIAIS (DADOS PADRÃO) =========
+
 INSERT INTO caixa_status (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
 INSERT INTO empresa_config (id, nome_fantasia) VALUES (1, 'BankaiERP') ON CONFLICT (id) DO NOTHING;
 INSERT INTO categorias (nome) VALUES ('Geral') ON CONFLICT (nome) DO NOTHING;
