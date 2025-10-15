@@ -89,24 +89,16 @@ Toda a comunicação entre o frontend e o backend é realizada através de **req
 
 ---
 
-## 🧑‍💻 Autor
+## 🧑‍💻 Autores
 
-**Courtesy**  
-Desenvolvedor e idealizador do projeto **Bankai ERP**  
-💼 Projeto acadêmico e de portfólio  
-📍 Jacareí — SP, Brasil  
+**Luiz Pereira**  
+Desenvolvedor principal e idealizador do projeto. Responsável pela estrutura, design e funcionalidades do sistema.  
 
----
+**Luís Gustavo**  
+Colaborador no desenvolvimento e na organização do projeto, contribuindo com ideias e melhorias no layout.  
 
-## 📜 Licença
+**Miguel Melo**  
+Auxiliou na documentação e revisão do código, garantindo padronização e boas práticas.  
 
-Este projeto está licenciado sob a **MIT License** — veja o arquivo [LICENSE](LICENSE) para mais detalhes.
-
----
-
-## 🌟 Agradecimentos
-
-Agradecimentos especiais a todos os professores e colegas que contribuíram direta ou indiretamente com o desenvolvimento deste projeto.  
-Inspirado em boas práticas de design, arquitetura limpa e desenvolvimento full-stack moderno.
-
-> “Um bom sistema não é aquele que faz tudo, mas aquele que faz o necessário com eficiência.” — *Courtesy*
+**Davi Lemes**  
+Responsável por testes e feedbacks de usabilidade durante o desenvolvimento.  
