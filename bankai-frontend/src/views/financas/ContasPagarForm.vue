@@ -6,6 +6,7 @@
           <h2>Nova Conta a Pagar</h2>
         </div>
         <div class="actions">
+          <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
           <button @click="router.back()" class="btn btn-secondary">Cancelar</button>
           <button @click="salvarConta" class="btn btn-primary">Salvar Conta</button>
         </div>
@@ -14,7 +15,7 @@
       <div class="card-form">
         <div class="form-grid">
           <div class="form-group col-4">
-            <label>Fornecedor</label>
+            <label>Fornecedor (Opcional)</label>
             <div class="search-container">
               <input type="text" v-model="termoBuscaFornecedor" placeholder="Pesquise pelo nome..." />
               <div v-if="resultadosBuscaFornecedor.length > 0" class="search-results">
@@ -68,6 +69,7 @@
   
   const router = useRouter();
   const auth = useAuth();
+  const errorMessage = ref('');
   
   const conta = reactive({
     fornecedor_id: null,
@@ -83,10 +85,28 @@
   const termoBuscaFornecedor = ref('');
   const resultadosBuscaFornecedor = ref([]);
   
-  const apiFetch = async (url, options = {}) => { /* ... sua função apiFetch ... */ };
+  const apiFetch = async (url, options = {}) => {
+    const response = await fetch(`http://localhost:5000/api${url}`, {
+      ...options,
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${auth.token.value}`, ...options.headers },
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Erro no servidor.');
+    }
+    return response.status === 204 ? null : response.json();
+  };
   
   watch(termoBuscaFornecedor, async (valor) => {
-    if (!valor || valor.length < 2) { resultadosBuscaFornecedor.value = []; return; }
+    if (!valor) {
+      conta.fornecedor_id = null;
+      resultadosBuscaFornecedor.value = [];
+      return;
+    }
+    if (valor.length < 2) {
+      resultadosBuscaFornecedor.value = [];
+      return;
+    }
     try {
       resultadosBuscaFornecedor.value = await apiFetch(`/fornecedores?q=${valor}`);
     } catch (err) {
@@ -102,7 +122,8 @@
   
   const salvarConta = async () => {
     if (!conta.data_vencimento || !conta.valor || conta.valor <= 0) {
-      return alert('Data de Vencimento e Valor são obrigatórios.');
+      errorMessage.value = 'Data de Vencimento e Valor são obrigatórios.';
+      return;
     }
     try {
       await apiFetch('/contas-pagar', {
@@ -111,16 +132,17 @@
       });
       router.push('/financas/contas-pagar');
     } catch (err) {
-      alert(`Erro ao salvar conta: ${err.message}`);
+      errorMessage.value = `Erro ao salvar conta: ${err.message}`;
     }
   };
   </script>
   
   <style scoped>
-  /* Estilos semelhantes aos de outros formulários */
   .page-container { padding: 1.5rem; }
   .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
   .back-link { color: var(--text-secondary); text-decoration: none; margin-bottom: 0.5rem; display: block; }
+  .actions { display: flex; align-items: center; gap: 1rem; }
+  .error-message { color: #EF4444; }
   .card-form { background-color: var(--background-light); border-radius: 8px; border: 1px solid var(--border-color); padding: 1.5rem; }
   .form-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 1.5rem; }
   .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
