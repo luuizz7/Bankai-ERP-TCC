@@ -63,7 +63,6 @@
                           </div>
                       </div>
                       <input type="number" min="1" v-model.number="novoItem.quantidade" placeholder="Qtd" />
-                      <input type="number" step="0.01" v-model.number="novoItem.preco_custo" placeholder="Custo (R$)" />
                       <button class="btn btn-primary" @click="adicionarItem">Adicionar</button>
                   </div>
   
@@ -251,4 +250,9 @@
   .btn-primary { background-color: var(--accent-color); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; cursor: pointer; font-weight: 500; }
   .btn-success { background-color: #2E7D32; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; cursor: pointer; font-weight: 500; }
   .btn-full-width { width: 100%; }
+  .add-item-form .btn-primary {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 </style>

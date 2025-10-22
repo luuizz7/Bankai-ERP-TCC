@@ -7,7 +7,6 @@ import { fileURLToPath } from 'url';
 
 dotenv.config();
 
-// --- Imports das Rotas (Organizados) ---
 import agendaRouter from './routes/agenda.js';
 import authRouter from './routes/auth.js';
 import caixaRouter from './routes/caixa.js';
@@ -25,6 +24,7 @@ import produtosRouter from './routes/produtos.js';
 import statsRouter from './routes/stats.js';
 import usuariosRouter from './routes/usuarios.js';
 import vendedoresRouter from './routes/vendedores.js';
+import propostasRoutes from './routes/propostas.js';
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -32,18 +32,15 @@ const port = process.env.PORT || 5000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// --- Sua lógica de pasta 'uploads' (100% Preservada) ---
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir);
 }
 
-// --- Middlewares ---
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// --- Registro das Rotas da API (Organizado) ---
 app.use('/api/agenda', agendaRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/caixa', caixaRouter);
@@ -61,6 +58,7 @@ app.use('/api/produtos', produtosRouter);
 app.use('/api/stats', statsRouter);
 app.use('/api/usuarios', usuariosRouter);
 app.use('/api/vendedores', vendedoresRouter);
+app.use('/api/propostas', propostasRoutes);
 
 app.listen(port, () => {
   console.log(`✅ Servidor backend rodando na porta ${port}`);

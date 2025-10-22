@@ -234,6 +234,26 @@ CREATE TABLE IF NOT EXISTS pedido_itens (
   preco_unitario NUMERIC(10, 2) NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS propostas (
+  id SERIAL PRIMARY KEY,
+  cliente_id INT REFERENCES clientes(id) ON DELETE SET NULL,
+  vendedor_id INT REFERENCES vendedores(id) ON DELETE SET NULL,
+  data_proposta TIMESTAMPTZ DEFAULT NOW(),
+  data_validade DATE,
+  status VARCHAR(20) DEFAULT 'rascunho' CHECK (status IN ('rascunho', 'pendente', 'aprovada', 'nao_aprovada', 'concluida')), 
+  valor_total NUMERIC(10, 2) DEFAULT 0,
+  observacoes TEXT,
+  nome_cliente_temp VARCHAR(255) -- Coluna para nome do cliente avulso
+);
+
+CREATE TABLE IF NOT EXISTS proposta_itens (
+  id SERIAL PRIMARY KEY,
+  proposta_id INT NOT NULL REFERENCES propostas(id) ON DELETE CASCADE,
+  produto_id INT REFERENCES produtos(id) ON DELETE SET NULL, 
+  descricao_produto VARCHAR(255), -- Coluna para nome do produto avulso
+  quantidade INT NOT NULL,
+  preco_unitario NUMERIC(10, 2) NOT NULL
+);
 
 -- ========= INSERÇÕES INICIAIS (DADOS PADRÃO) =========
 

@@ -23,7 +23,9 @@ const NotasEntrada = () => import('../views/suprimentos/NotasEntrada.vue');
 const NotasEntradaDetalhe = () => import('../views/suprimentos/NotasEntradaDetalhe.vue');
 const HistoricoEstoque = () => import('../views/suprimentos/HistoricoEstoque.vue');
 const PDV = () => import('../views/vendas/PDV.vue');
-const Orcamentos = () => import('../views/vendas/Orcamentos.vue');
+const Orcamentos = () => import('../views/vendas/Orcamentos.vue'); 
+const OrcamentoLista = () => import('../views/vendas/OrcamentoLista.vue'); 
+const OrcamentoForm = () => import('../views/vendas/OrcamentoForm.vue');
 const PedidosVenda = () => import('../views/vendas/PedidosVenda.vue');
 const Caixa = () => import('../views/financas/Caixa.vue');
 const ContasPagar = () => import('../views/financas/ContasPagar.vue');
@@ -100,7 +102,29 @@ const routes = [
 
   // --- ROTAS DE VENDAS (Seu código original, 100% intacto) ---
   { path: '/vendas/pdv', name: 'pdv', component: PDV, meta: { requiresAuth: true } },
-  { path: '/vendas/orcamentos', name: 'orcamentos', component: Orcamentos, meta: { requiresAuth: true } },
+  {
+        // A rota principal agora é a própria lista
+        path: '/vendas/orcamentos', 
+        name: 'OrcamentoLista', 
+        component: OrcamentoLista, // Aponta direto para seu arquivo de lista
+        meta: { requiresAuth: true }
+      },
+      {
+        // Rota para criar um novo
+        path: '/vendas/orcamentos/novo', 
+        name: 'OrcamentoNovo', 
+        component: OrcamentoForm, 
+        meta: { requiresAuth: true }
+      },
+      {
+        // Rota para editar um existente
+        path: '/vendas/orcamentos/editar/:id', 
+        name: 'OrcamentoEditar', 
+        component: OrcamentoForm, 
+        meta: { requiresAuth: true },
+        props: true 
+      },
+
   { path: '/vendas/pedidos-venda', name: 'pedidos-venda', component: PedidosVenda, meta: { requiresAuth: true } },
 
   // --- ROTAS DE FINANÇAS (Seu código original com a adição) ---

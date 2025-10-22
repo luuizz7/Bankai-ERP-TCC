@@ -42,7 +42,7 @@
             <tr v-else-if="clientesFiltrados.length === 0"><td colspan="4" class="empty-state">Nenhum cliente cadastrado.</td></tr>
             <tr v-for="cliente in clientesFiltrados" :key="cliente.id">
               <td class="checkbox-cell"><input type="checkbox" :value="cliente.id" v-model="clientesSelecionados" /></td>
-              <td>{{ cliente.nome }}</td><td>{{ cliente.email }}</td><td>{{ cliente.telefone }}</td>
+              <td>{{ cliente.nome }}</td><td>{{ cliente.email }}</td><td>{{ formatarTelefone(cliente.telefone) }}</td>
             </tr>
           </tbody>
         </table>
@@ -162,7 +162,28 @@ const deletarSelecionados = async () => {
     alert(`Erro ao excluir: ${err.message}`);
   }
 };
+
+const formatarTelefone = (tel) => {
+  if (!tel) return ''; // Retorna vazio se não houver telefone
+  
+
+  const numero = tel.replace(/\D/g, '');
+
+
+  if (numero.length < 10 || numero.startsWith('000')) {
+    return tel; // Retorna o número original se for muito curto ou placeholder
+  }
+
+
+  if (numero.length === 11) {
+    return `(${numero.substring(0, 2)}) ${numero.substring(2, 7)}-${numero.substring(7)}`;
+  }
+
+
+  return `(${numero.substring(0, 2)}) ${numero.substring(2, 6)}-${numero.substring(6)}`;
+};
 </script>
+
 
 <style scoped>
 .page-container { padding: 1.5rem; }

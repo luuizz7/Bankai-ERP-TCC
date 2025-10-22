@@ -193,7 +193,7 @@ const produto = reactive({
   preco_custo: 0, // <-- CORREÇÃO: Propriedade 'preco_custo' adicionada
   preco_venda: 0, preco_promocional: 0, peso_liquido: 0, peso_bruto: 0,
   tipo_embalagem: "Pacote/Caixa", largura: 0, altura: 0, comprimento: 0,
-  controla_estoque: false, estoque_atual: 0, estoque_minimo: 0, estoque_maximo: 0,
+  controla_estoque: true, estoque_atual: 0, estoque_minimo: 0, estoque_maximo: 0,
   localizacao: "", marca: "", descricao: "", garantia: 0, imagem: null
 });
 
