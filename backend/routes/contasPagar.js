@@ -5,9 +5,10 @@ import authMiddleware from '../middleware/authMiddleware.js';
 
 const router = Router();
 
-// GET: Listar todas as contas a pagar
+// GET: Listar todas as contas a pagar (CÓDIGO CORRIGIDO)
 router.get('/', authMiddleware, async (req, res) => {
   try {
+    // Query limpa, sem caracteres especiais
     const query = `
       SELECT cp.*, f.nome as fornecedor_nome
       FROM contas_pagar cp
@@ -17,11 +18,41 @@ router.get('/', authMiddleware, async (req, res) => {
     const { rows } = await pool.query(query);
     res.json(rows);
   } catch (err) {
+    console.error('Erro ao buscar contas a pagar:', err);
     res.status(500).json({ message: 'Erro no servidor ao buscar contas a pagar.' });
   }
 });
 
-// POST: Criar uma nova conta a pagar
+// GET: Buscar UMA conta a pagar específica pelo ID (VERSÃO SIMPLES E CORRIGIDA)
+router.get('/:id', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Query limpa e simples que sabemos que funciona
+    const query = `
+      SELECT cp.*, f.nome as fornecedor_nome
+      FROM contas_pagar cp
+      LEFT JOIN fornecedores f ON cp.fornecedor_id = f.id
+      WHERE cp.id = $1;
+    `;
+
+    const { rows } = await pool.query(query, [id]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'Conta a pagar não encontrada.' });
+    }
+    
+    // Isto vai funcionar e carregar sua página de detalhes
+    // (mas ainda sem os itens do pedido)
+    res.json(rows[0]); 
+
+  } catch (err) {
+    console.error(`Erro ao buscar conta por ID (${req.params.id}):`, err);
+    res.status(500).json({ message: 'Erro no servidor ao buscar detalhes da conta.' });
+  }
+});
+
+// POST: Criar uma nova conta a pagar (CÓDIGO CORRIGIDO)
 router.post('/', authMiddleware, async (req, res) => {
   try {
     const {
@@ -47,11 +78,12 @@ router.post('/', authMiddleware, async (req, res) => {
     const { rows } = await pool.query(query, values);
     res.status(201).json(rows[0]);
   } catch (err) {
+    console.error('Erro ao criar conta a pagar:', err);
     res.status(500).json({ message: 'Erro no servidor ao criar conta a pagar.' });
   }
 });
 
-// PUT: Marcar uma ou mais contas como 'paga'
+// PUT: Marcar uma ou mais contas como 'paga' (CÓDIGO CORRIGIDO)
 router.put('/pagar', authMiddleware, async (req, res) => {
   try {
     const { ids } = req.body;
@@ -66,20 +98,23 @@ router.put('/pagar', authMiddleware, async (req, res) => {
     await pool.query(query, [ids]);
     res.status(200).json({ message: 'Contas marcadas como pagas.' });
   } catch (err) {
+    console.error('Erro ao pagar contas:', err);
     res.status(500).json({ message: 'Erro no servidor ao pagar contas.' });
   }
 });
 
-// DELETE: Excluir uma ou mais contas
+// DELETE: Excluir uma ou mais contas (CÓDIGO CORRIGIDO)
 router.delete('/', authMiddleware, async (req, res) => {
   try {
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) {
       return res.status(400).json({ message: 'Nenhum ID fornecido.' });
     }
-    await pool.query('DELETE FROM contas_pagar WHERE id = ANY($1)', [ids]);
+    const query = 'DELETE FROM contas_pagar WHERE id = ANY($1)';
+    await pool.query(query, [ids]);
     res.status(204).send();
   } catch (err) {
+    console.error('Erro ao excluir contas:', err);
     res.status(500).json({ message: 'Erro no servidor ao excluir contas.' });
   }
 });

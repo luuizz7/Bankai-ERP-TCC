@@ -137,6 +137,7 @@ const menuItems = ref([
       { name: 'Clientes e Fornecedores', path: '/cadastros/clientes' },
       { name: 'Produtos', path: '/cadastros/produtos' },
       { name: 'Vendedores', path: '/cadastros/vendedores' },
+      { name: 'Funcionários', path: '/cadastros/funcionarios' }, 
     ]
   },
   {
@@ -164,7 +165,6 @@ const menuItems = ref([
       { name: 'Caixa', path: '/financas/caixa' },
       { name: 'Contas a Pagar', path: '/financas/contas-pagar' },
       { name: 'Contas a Receber', path: '/financas/contas-receber' },
-      { name: 'Imposto', path: '/financas/impostos' },
       { name: 'Folha de Pagamento', path: '/financas/folha-pagamento' },
     ]
   },
@@ -174,6 +174,7 @@ const menuItems = ref([
     path: '/configuracoes/usuarios'
   }
 ]);
+
 </script>
 
 <style scoped>

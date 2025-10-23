@@ -153,6 +153,48 @@ CREATE TABLE IF NOT EXISTS pedidos_venda (
   total NUMERIC(10, 2) DEFAULT 0
 );
 
+CREATE TABLE IF NOT EXISTS funcionarios (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    cpf VARCHAR(14) UNIQUE,
+    cargo VARCHAR(100),
+    data_admissao DATE,
+    salario_base NUMERIC(10, 2) DEFAULT 0,
+    ativo BOOLEAN DEFAULT true 
+);
+
+CREATE TABLE IF NOT EXISTS folhas_pagamento (
+    id SERIAL PRIMARY KEY,
+    mes_referencia INT NOT NULL, -- Ex: 10 para Outubro
+    ano_referencia INT NOT NULL, -- Ex: 2025
+    data_pagamento DATE, -- Data em que o pagamento foi/será feito
+    status VARCHAR(20) DEFAULT 'aberta' CHECK (status IN ('aberta', 'calculada', 'paga')), -- Controle simples
+    -- Podemos adicionar totais gerais depois, se necessário
+    UNIQUE (mes_referencia, ano_referencia) -- Só pode ter uma folha por mês/ano
+);
+
+CREATE TABLE IF NOT EXISTS holerites (
+    id SERIAL PRIMARY KEY,
+    folha_id INT NOT NULL REFERENCES folhas_pagamento(id) ON DELETE CASCADE,
+    funcionario_id INT NOT NULL REFERENCES funcionarios(id) ON DELETE RESTRICT, -- Impede deletar funcionário se ele tem holerite
+    -- Valores Base (podem vir do cadastro do funcionário)
+    salario_base_calculo NUMERIC(10, 2) DEFAULT 0,
+    -- Proventos (Ganhos) - Simplificado com campos manuais
+    valor_horas_extras NUMERIC(10, 2) DEFAULT 0,
+    valor_comissoes NUMERIC(10, 2) DEFAULT 0,
+    outros_proventos NUMERIC(10, 2) DEFAULT 0,
+    -- Descontos - Simplificado com campos manuais (INSS e IRRF podem ser complexos)
+    valor_inss NUMERIC(10, 2) DEFAULT 0, -- Valor a ser descontado (cálculo manual por enquanto)
+    valor_irrf NUMERIC(10, 2) DEFAULT 0, -- Valor a ser descontado (cálculo manual por enquanto)
+    valor_adiantamentos NUMERIC(10, 2) DEFAULT 0,
+    outros_descontos NUMERIC(10, 2) DEFAULT 0,
+    -- Totais Calculados
+    total_proventos NUMERIC(10, 2) GENERATED ALWAYS AS (salario_base_calculo + valor_horas_extras + valor_comissoes + outros_proventos) STORED,
+    total_descontos NUMERIC(10, 2) GENERATED ALWAYS AS (valor_inss + valor_irrf + valor_adiantamentos + outros_descontos) STORED,
+    valor_liquido NUMERIC(10, 2) GENERATED ALWAYS AS ((salario_base_calculo + valor_horas_extras + valor_comissoes + outros_proventos) - (valor_inss + valor_irrf + valor_adiantamentos + outros_descontos)) STORED,
+    UNIQUE (folha_id, funcionario_id) -- Cada funcionário só tem um holerite por folha
+);
+
 -- Tabela de Contas a Pagar corrigida
 CREATE TABLE IF NOT EXISTS contas_pagar (
   id SERIAL PRIMARY KEY,
@@ -167,18 +209,19 @@ CREATE TABLE IF NOT EXISTS contas_pagar (
   data_pagamento DATE
 );
 
--- Tabela de Contas a Receber corrigida
 CREATE TABLE IF NOT EXISTS contas_receber (
   id SERIAL PRIMARY KEY,
   cliente_id INT REFERENCES clientes(id) ON DELETE SET NULL,
-  -- << ADIÇÃO: Vínculo com a origem da conta
-  pedidos_venda_id INT REFERENCES pedidos_venda(id) ON DELETE SET NULL,
-  descricao VARCHAR(255),
+  pedidos_venda_id INT REFERENCES pedidos_venda(id) ON DELETE SET NULL, 
+  descricao VARCHAR(255), 
   data_vencimento DATE NOT NULL,
   valor NUMERIC(10, 2) NOT NULL,
   status VARCHAR(20) DEFAULT 'pendente' CHECK (status IN ('pendente','recebido', 'cancelado')),
-  -- << ADIÇÃO: Data do recebimento efetivo
-  data_recebimento DATE
+  data_recebimento DATE, -- <<<=== ADICIONE/VERIFIQUE ESTA LINHA ===>>>
+  data_emissao DATE DEFAULT CURRENT_DATE, 
+  numero_documento VARCHAR(50), 
+  categoria VARCHAR(100), 
+  forma_recebimento VARCHAR(50) 
 );
 
 -- Tabela de Estoque corrigida

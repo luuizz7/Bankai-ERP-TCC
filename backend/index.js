@@ -25,6 +25,10 @@ import statsRouter from './routes/stats.js';
 import usuariosRouter from './routes/usuarios.js';
 import vendedoresRouter from './routes/vendedores.js';
 import propostasRoutes from './routes/propostas.js';
+import funcionariosRoutes from './routes/funcionarios.js';
+import folhasPagamentoRoutes from './routes/folhasPagamento.js';
+import holeritesRoutes from './routes/holerites.js';
+
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -59,6 +63,10 @@ app.use('/api/stats', statsRouter);
 app.use('/api/usuarios', usuariosRouter);
 app.use('/api/vendedores', vendedoresRouter);
 app.use('/api/propostas', propostasRoutes);
+app.use('/api/propostas', propostasRoutes);
+app.use('/api/funcionarios', funcionariosRoutes);
+app.use('/api/folhas-pagamento', folhasPagamentoRoutes);
+app.use('/api/holerites', holeritesRoutes);
 
 app.listen(port, () => {
   console.log(`✅ Servidor backend rodando na porta ${port}`);

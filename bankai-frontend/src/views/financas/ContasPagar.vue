@@ -31,8 +31,15 @@
           <tbody>
             <tr v-if="loading"><td colspan="5" class="empty-state">Carregando...</td></tr>
             <tr v-else-if="contas.length === 0"><td colspan="5" class="empty-state">Nenhuma conta a pagar encontrada.</td></tr>
-            <tr v-for="conta in contas" :key="conta.id" :class="{ 'selected-row': selecionados.includes(conta.id) }">
-              <td class="checkbox-cell"><input type="checkbox" :value="conta.id" v-model="selecionados" /></td>
+            
+            <tr v-for="conta in contas" 
+                :key="conta.id" 
+                :class="{ 'selected-row': selecionados.includes(conta.id) }"
+                @click="verDetalhes(conta)">
+              
+              <td class="checkbox-cell" @click.stop>
+                <input type="checkbox" :value="conta.id" v-model="selecionados" />
+              </td>
               <td>{{ conta.fornecedor_nome || 'N/A' }}</td>
               <td>{{ formatarData(conta.data_vencimento) }}</td>
               <td class="text-center"><span class="status-badge" :class="`status-${conta.status}`">{{ conta.status }}</span></td>
@@ -85,6 +92,12 @@ const buscarContas = async () => {
 
 onMounted(buscarContas);
 
+// --- CORREÇÃO: Função para navegar para os detalhes ---
+const verDetalhes = (conta) => {
+  router.push(`/financas/contas-pagar/${conta.id}`);
+};
+// ----------------------------------------------------
+
 const selecionarTodos = computed({
   get: () => contas.value.length > 0 && selecionados.value.length === contas.value.length,
   set: (value) => {
@@ -133,15 +146,37 @@ const excluirSelecionados = async () => {
 .table th { text-align: left; padding: 0.75rem 1.5rem; background-color: var(--background-dark); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; color: var(--text-secondary); }
 .table td { padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); }
 .empty-state { text-align: center; padding: 2rem; }
-.text-center { text-align: center; }
-.text-right { text-align: right; }
+
+/* >> CORREÇÃO DE ESPECIFICIDADE PARA ALINHAMENTO << */
+.table th.text-center,
+.table td.text-center {
+  text-align: center;
+}
+.table th.text-right,
+.table td.text-right {
+  text-align: right;
+}
+
 .status-badge { padding: 0.25rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: capitalize; }
-.status-pendente { background-color: #D32F2F; color: #FFCDD2; }
-.status-pago { background-color: #388E3C; color: #C8E6C9; }
+.status-pendente { background-color: #D32F2F; color: #FFCDD2; } /* Ajuste as cores se necessário */
+.status-pago { background-color: #388E3C; color: #C8E6C9; } /* Ajuste as cores se necessário */
 .btn-primary, .btn-danger, .btn-success { border: none; padding: 0.65rem 1.25rem; border-radius: 6px; font-weight: 500; cursor: pointer; text-decoration: none; color: white; }
 .btn-primary { background-color: var(--accent-color); }
-.btn-danger { background-color: #D32F2F; }
-.btn-success { background-color: #2E7D32; }
-.checkbox-cell { width: 1%; }
-.selected-row { background-color: rgba(var(--accent-color-rgb), 0.1); }
+.btn-danger { background-color: #D32F2F; } /* Cor forte para exclusão */
+.btn-success { background-color: #2E7D32; } /* Cor verde para ações positivas */
+.checkbox-cell { width: 1%; } /* Ajuste se necessário para o tamanho do checkbox */
+.selected-row { background-color: rgba(var(--accent-color-rgb), 0.1); } /* Cor de fundo para linha selecionada */
+
+/* --- CORREÇÃO: Estilos para linha clicável --- */
+.table tbody tr:not(.empty-state) {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.table tbody tr:not(.empty-state):hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+.table tbody tr.selected-row:hover {
+  background-color: rgba(var(--accent-color-rgb), 0.12);
+}
+
 </style>

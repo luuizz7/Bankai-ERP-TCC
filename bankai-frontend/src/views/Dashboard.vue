@@ -63,8 +63,8 @@
           <div class="quick-actions-list">
             <router-link to="/vendas/pdv" class="quick-action-btn">Novo Pedido de Venda</router-link>
             <router-link to="/cadastros/clientes" class="quick-action-btn">Adicionar Cliente</router-link>
-            <router-link to="/financas/contas-a-pagar" class="quick-action-btn">Registrar Despesa</router-link>
-            <router-link to="/cadastros/produtos" class="quick-action-btn">Ver Estoque</router-link>
+            <router-link to="/financas/contas-pagar" class="quick-action-btn">Registrar Despesa</router-link>
+            <router-link to="/suprimentos/estoque" class="quick-action-btn">Ver Estoque</router-link>
           </div>
         </div>
       </div>
