@@ -1,6 +1,11 @@
 <template>
   <div class="sidebar-wrapper">
-    <nav class="sidebar-l1">
+    <nav
+      class="sidebar-l1"
+      :class="{ 'expanded': isExpanded }"
+      @mouseenter="isExpanded = true"
+      @mouseleave="isExpanded = false"
+    >
       <div class="sidebar-header">
         <div class="logo">B</div>
         <span class="logo-text">BankaiERP</span>
@@ -49,13 +54,13 @@
           <div class="profile-avatar">{{ userInitials }}</div>
         </div>
         <div class="profile-menu" v-if="isProfileMenuOpen" v-click-outside="closeProfileMenu">
-            <div class="profile-menu-header">
-              <span class="profile-name">{{ auth.user.value?.nome || 'Usuário' }}</span>
-              <span class="profile-email">{{ auth.user.value?.email || 'email' }}</span>
-            </div>
-            <router-link to="/configuracoes" @click="closeProfileMenu" class="profile-menu-item">Configurações</router-link>
-            <div class="profile-menu-item" @click="toggleTheme">Alterar Tema</div>
-            <div class="profile-menu-item" @click="logout">Sair</div>
+          <div class="profile-menu-header">
+            <span class="profile-name">{{ auth.user.value?.nome || 'Usuário' }}</span>
+            <span class="profile-email">{{ auth.user.value?.email || 'email' }}</span>
+          </div>
+          <router-link to="/configuracoes" @click="closeProfileMenu" class="profile-menu-item">Configurações</router-link>
+          <div class="profile-menu-item" @click="toggleTheme">Alterar Tema</div>
+          <div class="profile-menu-item" @click="logout">Sair</div>
         </div>
       </div>
     </nav>
@@ -69,6 +74,7 @@ import { useAuth } from '../auth';
 const auth = useAuth();
 const { logout } = useAuth();
 
+const isExpanded = ref(false);
 const activeSubMenu = ref(null);
 const isProfileMenuOpen = ref(false);
 let hideTimer = null;
@@ -98,18 +104,16 @@ const scheduleClose = () => {
 const toggleProfileMenu = () => {
   isProfileMenuOpen.value = !isProfileMenuOpen.value;
 };
-
 const closeProfileMenu = () => {
   isProfileMenuOpen.value = false;
 };
-
 const toggleTheme = () => {
   alert('Função para alterar o tema ainda será implementada!');
 };
 
 const vClickOutside = {
   mounted(el, binding) {
-    el.clickOutsideEvent = function(event) {
+    el.clickOutsideEvent = function (event) {
       if (!(el === event.target || el.contains(event.target))) {
         binding.value(event, el);
       }
@@ -128,7 +132,7 @@ const menuItems = ref([
     children: [
       { name: 'Dashboard', path: '/dashboard' },
       { name: 'Agenda', path: '/agenda' },
-    ]
+    ],
   },
   {
     name: 'Cadastros',
@@ -137,8 +141,8 @@ const menuItems = ref([
       { name: 'Clientes e Fornecedores', path: '/cadastros/clientes' },
       { name: 'Produtos', path: '/cadastros/produtos' },
       { name: 'Vendedores', path: '/cadastros/vendedores' },
-      { name: 'Funcionários', path: '/cadastros/funcionarios' }, 
-    ]
+      { name: 'Funcionários', path: '/cadastros/funcionarios' },
+    ],
   },
   {
     name: 'Suprimentos',
@@ -147,7 +151,7 @@ const menuItems = ref([
       { name: 'Controle De Estoque', path: '/suprimentos/estoque' },
       { name: 'Ordem de Compra', path: '/suprimentos/ordens-compra' },
       { name: 'Notas de Entrada', path: '/suprimentos/notas-entrada' },
-    ]
+    ],
   },
   {
     name: 'Vendas',
@@ -156,7 +160,7 @@ const menuItems = ref([
       { name: 'Painel De Vendas (PDV)', path: '/vendas/pdv' },
       { name: 'Proposta Comercial (Orçamento)', path: '/vendas/orcamentos' },
       { name: 'Pedido de Venda', path: '/vendas/pedidos-venda' },
-    ]
+    ],
   },
   {
     name: 'Finanças',
@@ -166,12 +170,14 @@ const menuItems = ref([
       { name: 'Contas a Pagar', path: '/financas/contas-pagar' },
       { name: 'Contas a Receber', path: '/financas/contas-receber' },
       { name: 'Folha de Pagamento', path: '/financas/folha-pagamento' },
-    ]
+    ],
   },
   {
     name: 'Usuários',
     icon: 'fa-solid fa-users',
-    path: '/configuracoes/usuarios'
+    children: [
+      { name: 'Lista de Usuários', path: '/configuracoes/usuarios' }
+    ]
   }
 ]);
 
@@ -182,22 +188,35 @@ const menuItems = ref([
   position: relative;
   z-index: 100;
 }
+
 .sidebar-l1 {
-  width: 260px;
+  width: 80px;
   height: 100vh;
   background-color: var(--sidebar-bg);
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   padding: 1.5rem 1rem;
-  position: relative;
+  transition: width 0.2s ease; 
+
+  position: fixed;
+  top: 0;
+  left: 0;
   z-index: 101;
+  overflow-y: auto;
 }
+
+.sidebar-l1.expanded {
+  width: 260px;
+}
+
 .sidebar-header {
   display: flex;
   align-items: center;
   padding: 0 0.5rem 1.5rem 0.5rem;
+  flex-shrink: 0;
 }
+
 .logo {
   width: 40px;
   height: 40px;
@@ -210,20 +229,29 @@ const menuItems = ref([
   color: #fff;
   flex-shrink: 0;
 }
+
 .logo-text {
   margin-left: 1rem;
   font-size: 1.5rem;
   font-weight: 600;
+  opacity: 0;
+  white-space: nowrap;
+  transition: opacity 0.15s ease 0.05s; 
+  pointer-events: none;
 }
+
+.sidebar-l1.expanded .logo-text {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .menu-list-l1 {
   list-style: none;
   flex-grow: 1;
   margin: 0;
   padding: 0;
 }
-.menu-item-l1 {
-  position: relative;
-}
+
 .menu-link-l1 {
   display: flex;
   align-items: center;
@@ -233,53 +261,79 @@ const menuItems = ref([
   color: var(--text-secondary);
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background-color 0.2s ease, color 0.2s ease; 
   text-decoration: none;
 }
+
 .menu-item-l1:hover > .menu-link-l1,
 .menu-link-l1.router-link-active {
   background-color: var(--accent-color);
   color: #fff;
 }
+
 .icon {
   font-size: 1.2rem;
   margin-right: 1.25rem;
   width: 20px;
   text-align: center;
+  flex-shrink: 0;
 }
-.sidebar-l2 {
-  position: absolute;
-  top: 0;
-  left: calc(100% - 2px);
-  min-width: 280px;
-  background-color: var(--sidebar-bg);
-  border-right: 1px solid var(--border-color);
-  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.2);
-  padding: 1.5rem;
-  z-index: 1000;
+
+.menu-link-l1 span {
   opacity: 0;
-  transform: translateX(-6px);
-  visibility: hidden;
+  white-space: nowrap;
+  transition: opacity 0.15s ease 0.05s; 
   pointer-events: none;
-  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
 }
-.sidebar-l2.show {
+
+.sidebar-l1.expanded .menu-link-l1 span {
   opacity: 1;
-  transform: translateX(0);
-  visibility: visible;
   pointer-events: auto;
 }
+
+.sidebar-l2 {
+  position: fixed;
+  top: 0;
+  left: 80px;
+  height: 100vh;
+  overflow-y: auto;
+  min-width: 280px;
+  background-color: var(--sidebar-bg);
+  border-left: 1px solid var(--border-color);
+  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.2);
+  padding: 1.5rem;
+  z-index: 100;
+  opacity: 0;
+  
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.15s ease, visibility 0.15s ease, left 0.2s ease; 
+}
+
+.sidebar-l2.show {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  z-index: 102;
+}
+
+.sidebar-l1.expanded .menu-list-l1 .menu-item-l1 .sidebar-l2 {
+  left: 260px;
+}
+
 .submenu-header h3 {
   font-size: 1.1rem;
   color: var(--text-primary);
   margin: 0 0 1rem 0;
   padding-left: 0.25rem;
 }
+
 .submenu-list {
   list-style: none;
   padding: 0;
   margin: 0;
 }
+
 .submenu-link {
   display: block;
   text-decoration: none;
@@ -289,25 +343,21 @@ const menuItems = ref([
   font-weight: 500;
   transition: all 0.2s ease;
 }
+
 .submenu-link:hover,
 .submenu-link.router-link-exact-active {
   color: var(--accent-color);
   background-color: var(--background-light);
 }
-.menu-item-l1::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: -10px;
-  width: 10px;
-  height: 100%;
-}
+
 .sidebar-footer {
   position: relative;
   margin-top: auto;
   padding-top: 1.5rem;
   border-top: 1px solid var(--border-color);
+  flex-shrink: 0;
 }
+
 .profile {
   display: flex;
   align-items: center;
@@ -316,9 +366,11 @@ const menuItems = ref([
   border-radius: 50px;
   transition: background-color 0.2s ease;
 }
+
 .profile:hover {
   background-color: var(--background-dark);
 }
+
 .profile-avatar {
   width: 40px;
   height: 40px;
@@ -328,7 +380,9 @@ const menuItems = ref([
   display: grid;
   place-items: center;
   font-weight: bold;
+  flex-shrink: 0;
 }
+
 .profile-menu {
   position: absolute;
   bottom: 100%;
@@ -337,26 +391,30 @@ const menuItems = ref([
   background-color: var(--background-dark);
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  box-shadow: 0 -4px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.2);
   padding: 0.5rem;
   margin-bottom: 0.75rem;
   z-index: 102;
 }
+
 .profile-menu-header {
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border-color);
   margin-bottom: 0.5rem;
 }
+
 .profile-name {
   display: block;
   font-weight: 600;
   color: var(--text-primary);
 }
+
 .profile-email {
   display: block;
   font-size: 0.8rem;
   color: var(--text-secondary);
 }
+
 .profile-menu-item {
   display: block;
   padding: 0.75rem 1rem;
@@ -366,8 +424,28 @@ const menuItems = ref([
   font-weight: 500;
   cursor: pointer;
 }
+
 .profile-menu-item:hover {
   background-color: var(--accent-color);
   color: #fff;
+}
+
+.sidebar-l1 {
+  scrollbar-color: transparent transparent;
+  scrollbar-width: none;
+}
+.sidebar-l1::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+.sidebar-wrapper::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--sidebar-bg);
+  z-index: 200;
 }
 </style>
