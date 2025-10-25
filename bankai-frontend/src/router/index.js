@@ -46,11 +46,21 @@ const HoleriteForm = () => import('../views/financas/HoleriteForm.vue'); // Nova
 const FolhaPagamentoWrapper = () => import('../views/financas/FolhaPagamentoWrapper.vue');
 const FuncionariosLista = () => import('../views/cadastros/FuncionariosLista.vue');
 const FuncionarioForm = () => import('../views/cadastros/FuncionarioForm.vue');
+const LandingPage = () => import('../views/LandingPage.vue');
+const CadastroUsuario = () => import('../views/CadastroUsuario.vue');
 
 
 const routes = [
   { path: '/login', name: 'login', component: Login, meta: { public: true } },
-  { path: '/', redirect: '/dashboard' },
+  { path: '/welcome', name: 'landing', component: LandingPage, meta: { public: true } },
+  { path: '/cadastrar', name: 'cadastro', component: CadastroUsuario, meta: { public: true } },
+    { 
+    path: '/', 
+    redirect: () => {
+      const auth = useAuth();
+      return auth.isAuthenticated.value ? '/dashboard' : '/welcome'; 
+    } 
+  },
   { path: '/dashboard', name: 'dashboard', component: Dashboard, meta: { requiresAuth: true } },
   { path: '/agenda', name: 'agenda', component: Agenda, meta: { requiresAuth: true } },
   { path: '/configuracoes', name: 'configuracoes', component: MinhaConta, meta: { requiresAuth: true } },
@@ -250,11 +260,14 @@ router.beforeEach((to, from, next) => {
   const isPublic = to.matched.some(record => record.meta.public);
   const requiresAuth = !isPublic;
 
-  if (requiresAuth && !auth.isAuthenticated.value) {
-    next({ name: 'login', query: { redirect: to.fullPath } });
-  } else {
-    next();
-  }
+if (requiresAuth && !auth.isAuthenticated.value) {
+    next({ name: 'login', query: { redirect: to.fullPath } });
+  } else if (to.name === 'login' && auth.isAuthenticated.value) {
+    next({ name: 'dashboard' });
+  }
+   else {
+    next();
+  }
 });
 
 export default router;
