@@ -2,16 +2,25 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  --background-dark: #202020;
-  --background-light: #202020;
-  --sidebar-bg: #202020;
-  --text-primary: #E0E0E5;
-  --text-secondary: #A9A9B2;
-  --accent-color: #F97316;
-  --accent-color-hover: #F97316;
-  --border-color: #b96f00a1;
-  --success-color: #50CD89;
-  --danger-color: #F64E60;
+  /* Cores de Fundo (Variação Sutil) */
+  --background-darker: #181818;   /* Bem escuro, quase preto */
+  --background-dark: #202020;     /* Fundo principal (mantido) */
+  --background-light: #262626;   /* Cards/Elementos - Um pouco mais claro que o fundo */
+  --sidebar-bg: #262626;       /* Sidebar igual aos cards (ou pode ser --background-dark) */
+
+  /* Cores de Texto (Mantidas) */
+  --text-primary: #E0E0E5;      
+  --text-secondary: #A9A9B2;     
+
+  /* Cor de Destaque (Mantida) */
+  --accent-color: #F97316;       
+  --accent-color-hover: #EA580C; 
+  --accent-color-rgb: 249, 115, 22; 
+
+  /* Outras Cores */
+  --border-color: #363636;      /* Borda um cinza escuro um pouco mais suave */
+  --success-color: #50CD89;      
+  --danger-color: #F64E60;       
 }
 
 * {

@@ -1,124 +1,112 @@
 <template>
-    <div class="cadastro-container">
-      <div class="cadastro-box">
-        <router-link to="/welcome" class="logo-link">
-          <span class="logo-icon">B</span>
-          <span class="logo-text">BankaiERP</span>
-        </router-link>
-        
-        <h2>Crie sua conta grátis</h2>
-        <p class="subtitle">Comece a organizar sua empresa agora mesmo.</p>
-  
-        <form @submit.prevent="cadastrar">
-          <div class="form-group">
-            <label for="nome">Nome</label>
-            <input type="text" id="nome" v-model="formData.nome" placeholder="Como gostaria de ser chamado" required>
-          </div>
-          <div class="form-group">
-            <label for="email">E-mail</label>
-            <input type="email" id="email" v-model="formData.email" placeholder="nome@minhaempresa.com.br" required>
-          </div>
-           <div class="form-group">
-            <label for="celular">Número de celular (Opcional)</label>
-            <input type="tel" id="celular" v-model="formData.celular" placeholder="(00) 00000-0000">
-          </div>
-           <div class="form-group">
-            <label for="cnpj">CNPJ (Opcional)</label>
-            <input type="text" id="cnpj" v-model="formData.cnpj" placeholder="00.000.000/0000-00">
-          </div>
-          <div class="form-group">
-            <label for="senha">Senha</label>
-            <input type="password" id="senha" v-model="formData.senha" placeholder="Entre 6 e 32 caracteres" required minlength="6" maxlength="32">
-          </div>
-           <div class="form-group">
-            <label for="confirmarSenha">Confirmar Senha</label>
-            <input type="password" id="confirmarSenha" v-model="formData.confirmarSenha" placeholder="Repita a senha" required>
-          </div>
-  
-          <div class="form-check">
-            <input type="checkbox" id="termos" v-model="formData.aceitouTermos" required>
-            <label for="termos">
-              Li e concordo com os <a href="/termos" target="_blank">Termos de Uso</a> e <a href="/privacidade" target="_blank">Política de Privacidade</a>.
-            </label>
-          </div>
-  
-          <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
-  
-          <button type="submit" class="btn btn-primary btn-full" :disabled="isLoading">
-            {{ isLoading ? 'Cadastrando...' : 'Começar teste' }}
-          </button>
-        </form>
-  
-        <p class="login-link">
-          Já tem uma conta? <router-link to="/login">Faça login</router-link>
-        </p>
-      </div>
+  <div class="cadastro-container">
+    <div class="cadastro-box">
+      <router-link to="/welcome" class="logo-link">
+        <span class="logo-icon">B</span>
+        <span class="logo-text">BankaiERP</span>
+      </router-link>
+      
+      <h2>Crie sua conta grátis</h2>
+      <p class="subtitle">Comece a organizar sua empresa agora mesmo.</p>
+
+      <form @submit.prevent="cadastrar">
+        <div class="form-group">
+          <label for="nome">Nome</label>
+          <input type="text" id="nome" v-model="formData.nome" placeholder="Como gostaria de ser chamado" required>
+        </div>
+        <div class="form-group">
+          <label for="email">E-mail</label>
+          <input type="email" id="email" v-model="formData.email" placeholder="nome@minhaempresa.com.br" required>
+        </div>
+         <div class="form-group">
+          <label for="celular">Número de celular (Opcional)</label>
+          <input type="tel" id="celular" v-model="formData.celular" placeholder="(00) 00000-0000">
+        </div>
+         <div class="form-group">
+          <label for="cnpj">CNPJ (Opcional)</label>
+          <input type="text" id="cnpj" v-model="formData.cnpj" placeholder="00.000.000/0000-00">
+        </div>
+        <div class="form-group">
+          <label for="senha">Senha</label>
+          <input type="password" id="senha" v-model="formData.senha" placeholder="Entre 6 e 32 caracteres" required minlength="6" maxlength="32">
+        </div>
+         <div class="form-group">
+          <label for="confirmarSenha">Confirmar Senha</label>
+          <input type="password" id="confirmarSenha" v-model="formData.confirmarSenha" placeholder="Repita a senha" required>
+        </div>
+
+        <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+
+        <button type="submit" class="btn btn-primary btn-full" :disabled="isLoading">
+          {{ isLoading ? 'Cadastrando...' : 'Começar teste' }}
+        </button>
+      </form>
+
+      <p class="login-link">
+        Já tem uma conta? <router-link to="/login">Faça login</router-link>
+      </p>
     </div>
-  </template>
-  
-  <script setup>
-  import { reactive, ref } from 'vue';
-  import { useRouter } from 'vue-router';
-  
-  const router = useRouter();
-  const formData = reactive({
-    nome: '',
-    email: '',
-    celular: '',
-    cnpj: '',
-    senha: '',
-    confirmarSenha: '',
-    aceitouTermos: false,
-  });
-  const isLoading = ref(false);
-  const errorMessage = ref('');
-  
-  const cadastrar = async () => {
-    errorMessage.value = '';
-    if (formData.senha !== formData.confirmarSenha) {
-      errorMessage.value = 'As senhas não coincidem.';
-      return;
+  </div>
+</template>
+
+<script setup>
+import { reactive, ref } from 'vue';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+const formData = reactive({
+  nome: '',
+  email: '',
+  celular: '',
+  cnpj: '',
+  senha: '',
+  confirmarSenha: '',
+  // **** aceitouTermos REMOVIDO DAQUI ****
+});
+const isLoading = ref(false);
+const errorMessage = ref('');
+
+const cadastrar = async () => {
+  errorMessage.value = '';
+  if (formData.senha !== formData.confirmarSenha) {
+    errorMessage.value = 'As senhas não coincidem.';
+    return;
+  }
+  // **** VALIDAÇÃO DOS TERMOS REMOVIDA DAQUI ****
+
+  isLoading.value = true;
+  try {
+    const response = await fetch('http://localhost:5000/api/auth/register', { 
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nome: formData.nome,
+        email: formData.email,
+        senha: formData.senha,
+        celular: formData.celular || null, 
+        cnpj: formData.cnpj || null,      
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || `Erro ${response.status}`);
     }
-    if (!formData.aceitouTermos) {
-      errorMessage.value = 'Você precisa aceitar os Termos de Uso e Política de Privacidade.';
-      return;
-    }
-  
-    isLoading.value = true;
-    try {
-      const response = await fetch('http://localhost:5000/api/auth/register', { // Rota do backend
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nome: formData.nome,
-          email: formData.email,
-          senha: formData.senha,
-          celular: formData.celular || null, // Envia null se vazio
-          cnpj: formData.cnpj || null,      // Envia null se vazio
-        }),
-      });
-  
-      const data = await response.json();
-  
-      if (!response.ok) {
-        throw new Error(data.message || `Erro ${response.status}`);
-      }
-  
-      // Sucesso! Redireciona para o login com uma mensagem (opcional)
-      alert('Cadastro realizado com sucesso! Faça login para continuar.'); // Ou use um sistema de notificação
-      router.push('/login');
-  
-    } catch (err) {
-      errorMessage.value = err.message || 'Ocorreu um erro durante o cadastro.';
-      console.error('Erro no cadastro:', err);
-    } finally {
-      isLoading.value = false;
-    }
-  };
-  </script>
+
+    alert('Cadastro realizado com sucesso! Faça login para continuar.'); 
+    router.push('/login');
+
+  } catch (err) {
+    errorMessage.value = err.message || 'Ocorreu um erro durante o cadastro.';
+    console.error('Erro no cadastro:', err);
+  } finally {
+    isLoading.value = false;
+  }
+};
+</script>
   
   <style scoped>
-  /* Estilos para centralizar e dar aparência */
   .cadastro-container {
     display: flex;
     justify-content: center;
