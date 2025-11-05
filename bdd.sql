@@ -61,7 +61,8 @@ CREATE TABLE IF NOT EXISTS empresa_config (
 
 -- ========= ADICIONANDO COLUNA COM AUTO-REFERÊNCIA =========
 
-ALTER TABLE categorias ADD COLUMN IF NOT EXISTS categoria_pai_id INT REFERENCES categorias(id) ON DELETE SET NULL;
+ALTER TABLE categorias
+ADD COLUMN IF NOT EXISTS categoria_pai_id INT REFERENCES categorias(id) ON DELETE SET NULL;
 
 -- ========= TABELAS COM DEPENDÊNCIAS PRIMÁRIAS =========
 
@@ -96,30 +97,27 @@ CREATE TABLE IF NOT EXISTS produtos (
 );
 
 CREATE TABLE IF NOT EXISTS caixa_status (
-    id INT PRIMARY KEY DEFAULT 1,
-    aberto BOOLEAN NOT NULL DEFAULT false,
-    usuario_abertura_id INT REFERENCES usuarios(id),
-    data_abertura TIMESTAMPTZ,
-    valor_inicial NUMERIC(10, 2),
-    usuario_fechamento_id INT REFERENCES usuarios(id),
-    data_fechamento TIMESTAMPTZ,
-    valor_final NUMERIC(10, 2)
+  id INT PRIMARY KEY DEFAULT 1,
+  aberto BOOLEAN NOT NULL DEFAULT false,
+  usuario_abertura_id INT REFERENCES usuarios(id),
+  data_abertura TIMESTAMPTZ,
+  valor_inicial NUMERIC(10, 2),
+  usuario_fechamento_id INT REFERENCES usuarios(id),
+  data_fechamento TIMESTAMPTZ,
+  valor_final NUMERIC(10, 2)
 );
 
--- Tabela de movimentações de caixa corrigida
 CREATE TABLE IF NOT EXISTS caixa_movimentacoes (
-    id SERIAL PRIMARY KEY,
-    -- << CORREÇÃO: Adicionado 'saida' e 'sangria' para lançamentos manuais
-    tipo VARCHAR(20) NOT NULL CHECK (tipo IN ('abertura', 'reforco', 'sangria', 'venda', 'fechamento', 'saida')),
-    valor NUMERIC(10, 2) NOT NULL,
-    descricao TEXT,
-    usuario_id INT NOT NULL REFERENCES usuarios(id),
-    data_movimentacao TIMESTAMPTZ DEFAULT NOW(),
-    -- << ADIÇÃO: Campos essenciais para gestão financeira
-    categoria VARCHAR(100),
-    data_competencia DATE,
-    cliente_id INT REFERENCES clientes(id) ON DELETE SET NULL,
-    fornecedor_id INT REFERENCES fornecedores(id) ON DELETE SET NULL
+  id SERIAL PRIMARY KEY,
+  tipo VARCHAR(20) NOT NULL CHECK (tipo IN ('abertura', 'reforco', 'sangria', 'venda', 'fechamento', 'saida')),
+  valor NUMERIC(10, 2) NOT NULL,
+  descricao TEXT,
+  usuario_id INT NOT NULL REFERENCES usuarios(id),
+  data_movimentacao TIMESTAMPTZ DEFAULT NOW(),
+  categoria VARCHAR(100),
+  data_competencia DATE,
+  cliente_id INT REFERENCES clientes(id) ON DELETE SET NULL,
+  fornecedor_id INT REFERENCES fornecedores(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS compromissos (
@@ -133,15 +131,13 @@ CREATE TABLE IF NOT EXISTS compromissos (
   criado_em TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ... (outras tabelas como 'necessidade_compra', 'orcamentos' permanecem como estavam) ...
-
--- ========= TABELAS DE COMPRAS E VENDAS (DEPENDÊNCIAS MÚLTIPLAS) =========
+-- ========= TABELAS DE COMPRAS E VENDAS =========
 
 CREATE TABLE IF NOT EXISTS ordem_compra (
   id SERIAL PRIMARY KEY,
   fornecedor_id INT REFERENCES fornecedores(id) ON DELETE SET NULL,
   data_ordem TIMESTAMPTZ DEFAULT NOW(),
-  status VARCHAR(20) DEFAULT 'aberta' CONSTRAINT ordem_compra_status_check CHECK (status IN ('aberta','atendida','cancelada'))
+  status VARCHAR(20) DEFAULT 'aberta' CHECK (status IN ('aberta','atendida','cancelada'))
 );
 
 CREATE TABLE IF NOT EXISTS pedidos_venda (
@@ -154,100 +150,76 @@ CREATE TABLE IF NOT EXISTS pedidos_venda (
 );
 
 CREATE TABLE IF NOT EXISTS funcionarios (
-    id SERIAL PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
-    cpf VARCHAR(14) UNIQUE,
-    cargo VARCHAR(100),
-    data_admissao DATE,
-    salario_base NUMERIC(10, 2) DEFAULT 0,
-    ativo BOOLEAN DEFAULT true 
+  id SERIAL PRIMARY KEY,
+  nome VARCHAR(100) NOT NULL,
+  cpf VARCHAR(14) UNIQUE,
+  cargo VARCHAR(100),
+  data_admissao DATE,
+  salario_base NUMERIC(10, 2) DEFAULT 0,
+  ativo BOOLEAN DEFAULT true
 );
 
 CREATE TABLE IF NOT EXISTS folhas_pagamento (
-    id SERIAL PRIMARY KEY,
-    mes_referencia INT NOT NULL, -- Ex: 10 para Outubro
-    ano_referencia INT NOT NULL, -- Ex: 2025
-    data_pagamento DATE, -- Data em que o pagamento foi/será feito
-    status VARCHAR(20) DEFAULT 'aberta' CHECK (status IN ('aberta', 'calculada', 'paga')), -- Controle simples
-    -- Podemos adicionar totais gerais depois, se necessário
-    UNIQUE (mes_referencia, ano_referencia) -- Só pode ter uma folha por mês/ano
+  id SERIAL PRIMARY KEY,
+  mes_referencia INT NOT NULL,
+  ano_referencia INT NOT NULL,
+  data_pagamento DATE,
+  status VARCHAR(20) DEFAULT 'aberta' CHECK (status IN ('aberta','calculada','paga')),
+  UNIQUE (mes_referencia, ano_referencia)
 );
 
 CREATE TABLE IF NOT EXISTS holerites (
-    id SERIAL PRIMARY KEY,
-    folha_id INT NOT NULL REFERENCES folhas_pagamento(id) ON DELETE CASCADE,
-    funcionario_id INT NOT NULL REFERENCES funcionarios(id) ON DELETE RESTRICT, -- Impede deletar funcionário se ele tem holerite
-    -- Valores Base (podem vir do cadastro do funcionário)
-    salario_base_calculo NUMERIC(10, 2) DEFAULT 0,
-    -- Proventos (Ganhos) - Simplificado com campos manuais
-    valor_horas_extras NUMERIC(10, 2) DEFAULT 0,
-    valor_comissoes NUMERIC(10, 2) DEFAULT 0,
-    outros_proventos NUMERIC(10, 2) DEFAULT 0,
-    -- Descontos - Simplificado com campos manuais (INSS e IRRF podem ser complexos)
-    valor_inss NUMERIC(10, 2) DEFAULT 0, -- Valor a ser descontado (cálculo manual por enquanto)
-    valor_irrf NUMERIC(10, 2) DEFAULT 0, -- Valor a ser descontado (cálculo manual por enquanto)
-    valor_adiantamentos NUMERIC(10, 2) DEFAULT 0,
-    outros_descontos NUMERIC(10, 2) DEFAULT 0,
-    -- Totais Calculados
-    total_proventos NUMERIC(10, 2) GENERATED ALWAYS AS (salario_base_calculo + valor_horas_extras + valor_comissoes + outros_proventos) STORED,
-    total_descontos NUMERIC(10, 2) GENERATED ALWAYS AS (valor_inss + valor_irrf + valor_adiantamentos + outros_descontos) STORED,
-    valor_liquido NUMERIC(10, 2) GENERATED ALWAYS AS ((salario_base_calculo + valor_horas_extras + valor_comissoes + outros_proventos) - (valor_inss + valor_irrf + valor_adiantamentos + outros_descontos)) STORED,
-    UNIQUE (folha_id, funcionario_id) -- Cada funcionário só tem um holerite por folha
+  id SERIAL PRIMARY KEY,
+  folha_id INT NOT NULL REFERENCES folhas_pagamento(id) ON DELETE CASCADE,
+  funcionario_id INT NOT NULL REFERENCES funcionarios(id) ON DELETE RESTRICT,
+  salario_base_calculo NUMERIC(10, 2) DEFAULT 0,
+  valor_horas_extras NUMERIC(10, 2) DEFAULT 0,
+  valor_comissoes NUMERIC(10, 2) DEFAULT 0,
+  outros_proventos NUMERIC(10, 2) DEFAULT 0,
+  valor_inss NUMERIC(10, 2) DEFAULT 0,
+  valor_irrf NUMERIC(10, 2) DEFAULT 0,
+  valor_adiantamentos NUMERIC(10, 2) DEFAULT 0,
+  outros_descontos NUMERIC(10, 2) DEFAULT 0,
+  total_proventos NUMERIC(10, 2) GENERATED ALWAYS AS (
+    salario_base_calculo + valor_horas_extras + valor_comissoes + outros_proventos
+  ) STORED,
+  total_descontos NUMERIC(10, 2) GENERATED ALWAYS AS (
+    valor_inss + valor_irrf + valor_adiantamentos + outros_descontos
+  ) STORED,
+  valor_liquido NUMERIC(10, 2) GENERATED ALWAYS AS (
+    (salario_base_calculo + valor_horas_extras + valor_comissoes + outros_proventos)
+    - (valor_inss + valor_irrf + valor_adiantamentos + outros_descontos)
+  ) STORED,
+  UNIQUE (folha_id, funcionario_id)
 );
 
--- Tabela de Contas a Pagar corrigida
 CREATE TABLE IF NOT EXISTS contas_pagar (
   id SERIAL PRIMARY KEY,
   fornecedor_id INT REFERENCES fornecedores(id) ON DELETE SET NULL,
-  -- << ADIÇÃO: Vínculo com a origem da conta
   ordem_compra_id INT REFERENCES ordem_compra(id) ON DELETE SET NULL,
   descricao VARCHAR(255),
   data_vencimento DATE NOT NULL,
   valor NUMERIC(10, 2) NOT NULL,
-  status VARCHAR(20) DEFAULT 'pendente' CHECK (status IN ('pendente','pago', 'cancelado')),
-  -- << ADIÇÃO: Data do pagamento efetivo
+  status VARCHAR(20) DEFAULT 'pendente' CHECK (status IN ('pendente','pago','cancelado')),
   data_pagamento DATE
 );
 
 CREATE TABLE IF NOT EXISTS contas_receber (
   id SERIAL PRIMARY KEY,
   cliente_id INT REFERENCES clientes(id) ON DELETE SET NULL,
-  pedidos_venda_id INT REFERENCES pedidos_venda(id) ON DELETE SET NULL, 
-  descricao VARCHAR(255), 
+  pedidos_venda_id INT REFERENCES pedidos_venda(id) ON DELETE SET NULL,
+  descricao VARCHAR(255),
   data_vencimento DATE NOT NULL,
   valor NUMERIC(10, 2) NOT NULL,
-  status VARCHAR(20) DEFAULT 'pendente' CHECK (status IN ('pendente','recebido', 'cancelado')),
-  data_recebimento DATE, -- <<<=== ADICIONE/VERIFIQUE ESTA LINHA ===>>>
-  data_emissao DATE DEFAULT CURRENT_DATE, 
-  numero_documento VARCHAR(50), 
-  categoria VARCHAR(100), 
-  forma_recebimento VARCHAR(50) 
+  status VARCHAR(20) DEFAULT 'pendente' CHECK (status IN ('pendente','recebido','cancelado')),
+  data_recebimento DATE,
+  data_emissao DATE DEFAULT CURRENT_DATE,
+  numero_documento VARCHAR(50),
+  categoria VARCHAR(100),
+  forma_recebimento VARCHAR(50)
 );
 
--- Tabela de Estoque corrigida
-CREATE TABLE IF NOT EXISTS estoque (
-  id SERIAL PRIMARY KEY,
-  produto_id INT NOT NULL REFERENCES produtos(id) ON DELETE CASCADE,
-  quantidade INT NOT NULL,
-  tipo_movimento VARCHAR(20) NOT NULL CHECK (tipo_movimento IN ('entrada', 'saida', 'balanco')),
-  observacao TEXT,
-  data_movimento TIMESTAMPTZ DEFAULT NOW(),
-  -- << ADIÇÃO: Vínculos para rastreabilidade do movimento
-  nota_entrada_id INT REFERENCES notas_entrada(id) ON DELETE SET NULL,
-  pedidos_venda_id INT REFERENCES pedidos_venda(id) ON DELETE SET NULL
-);
-
-
--- ========= TABELAS DE ITENS (DEPENDEM DAS TABELAS ACIMA) =========
-
-CREATE TABLE IF NOT EXISTS ordem_compra_itens (
-  id SERIAL PRIMARY KEY,
-  ordem_compra_id INT NOT NULL REFERENCES ordem_compra(id) ON DELETE CASCADE,
-  -- << CORREÇÃO: Regra de exclusão perigosa trocada por uma segura
-  produto_id INT REFERENCES produtos(id) ON DELETE SET NULL,
-  quantidade INT NOT NULL,
-  preco_custo NUMERIC(10, 2)
-);
+-- ========= TABELA DE NOTAS DE ENTRADA (ANTES DE ESTOQUE) =========
 
 CREATE TABLE IF NOT EXISTS notas_entrada (
   id SERIAL PRIMARY KEY,
@@ -259,11 +231,33 @@ CREATE TABLE IF NOT EXISTS notas_entrada (
   status VARCHAR(20) DEFAULT 'digitacao' CHECK (status IN ('digitacao','finalizada','cancelada'))
 );
 
--- << ADIÇÃO: Tabela crucial que estava faltando >>
+-- ========= ESTOQUE =========
+
+CREATE TABLE IF NOT EXISTS estoque (
+  id SERIAL PRIMARY KEY,
+  produto_id INT NOT NULL REFERENCES produtos(id) ON DELETE CASCADE,
+  quantidade INT NOT NULL,
+  tipo_movimento VARCHAR(20) NOT NULL CHECK (tipo_movimento IN ('entrada','saida','balanco')),
+  observacao TEXT,
+  data_movimento TIMESTAMPTZ DEFAULT NOW(),
+  nota_entrada_id INT REFERENCES notas_entrada(id) ON DELETE SET NULL,
+  pedidos_venda_id INT REFERENCES pedidos_venda(id) ON DELETE SET NULL
+);
+
+-- ========= TABELAS DE ITENS =========
+
+CREATE TABLE IF NOT EXISTS ordem_compra_itens (
+  id SERIAL PRIMARY KEY,
+  ordem_compra_id INT NOT NULL REFERENCES ordem_compra(id) ON DELETE CASCADE,
+  produto_id INT REFERENCES produtos(id) ON DELETE SET NULL,
+  quantidade INT NOT NULL,
+  preco_custo NUMERIC(10, 2)
+);
+
 CREATE TABLE IF NOT EXISTS nota_entrada_itens (
   id SERIAL PRIMARY KEY,
   nota_entrada_id INT NOT NULL REFERENCES notas_entrada(id) ON DELETE CASCADE,
-  produto_id INT NOT NULL REFERENCES produtos(id) ON DELETE RESTRICT, -- Impede a exclusão de produto que está em nota
+  produto_id INT NOT NULL REFERENCES produtos(id) ON DELETE RESTRICT,
   quantidade INT NOT NULL,
   preco_custo NUMERIC(10, 2) NOT NULL,
   subtotal NUMERIC(10, 2) GENERATED ALWAYS AS (quantidade * preco_custo) STORED
@@ -272,7 +266,7 @@ CREATE TABLE IF NOT EXISTS nota_entrada_itens (
 CREATE TABLE IF NOT EXISTS pedido_itens (
   id SERIAL PRIMARY KEY,
   pedido_id INT NOT NULL REFERENCES pedidos_venda(id) ON DELETE CASCADE,
-  produto_id INT REFERENCES produtos(id) ON DELETE SET NULL, 
+  produto_id INT REFERENCES produtos(id) ON DELETE SET NULL,
   quantidade INT NOT NULL,
   preco_unitario NUMERIC(10, 2) NOT NULL
 );
@@ -283,22 +277,22 @@ CREATE TABLE IF NOT EXISTS propostas (
   vendedor_id INT REFERENCES vendedores(id) ON DELETE SET NULL,
   data_proposta TIMESTAMPTZ DEFAULT NOW(),
   data_validade DATE,
-  status VARCHAR(20) DEFAULT 'rascunho' CHECK (status IN ('rascunho', 'pendente', 'aprovada', 'nao_aprovada', 'concluida')), 
+  status VARCHAR(20) DEFAULT 'rascunho' CHECK (status IN ('rascunho','pendente','aprovada','nao_aprovada','concluida')),
   valor_total NUMERIC(10, 2) DEFAULT 0,
   observacoes TEXT,
-  nome_cliente_temp VARCHAR(255) -- Coluna para nome do cliente avulso
+  nome_cliente_temp VARCHAR(255)
 );
 
 CREATE TABLE IF NOT EXISTS proposta_itens (
   id SERIAL PRIMARY KEY,
   proposta_id INT NOT NULL REFERENCES propostas(id) ON DELETE CASCADE,
-  produto_id INT REFERENCES produtos(id) ON DELETE SET NULL, 
-  descricao_produto VARCHAR(255), -- Coluna para nome do produto avulso
+  produto_id INT REFERENCES produtos(id) ON DELETE SET NULL,
+  descricao_produto VARCHAR(255),
   quantidade INT NOT NULL,
   preco_unitario NUMERIC(10, 2) NOT NULL
 );
 
--- ========= INSERÇÕES INICIAIS (DADOS PADRÃO) =========
+-- ========= INSERÇÕES INICIAIS =========
 
 INSERT INTO caixa_status (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
 INSERT INTO empresa_config (id, nome_fantasia) VALUES (1, 'BankaiERP') ON CONFLICT (id) DO NOTHING;
