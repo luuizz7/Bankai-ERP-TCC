@@ -292,7 +292,7 @@ CREATE TABLE IF NOT EXISTS proposta_itens (
   preco_unitario NUMERIC(10, 2) NOT NULL
 );
 
--- ========= INSERÇÕES INICIAIS =========
+-- ========= INSERÇÕES INICIAIS ==========
 
 INSERT INTO caixa_status (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
 INSERT INTO empresa_config (id, nome_fantasia) VALUES (1, 'BankaiERP') ON CONFLICT (id) DO NOTHING;
