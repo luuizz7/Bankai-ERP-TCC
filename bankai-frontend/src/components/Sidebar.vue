@@ -58,7 +58,9 @@
             <span class="profile-name">{{ auth.user.value?.nome || 'Usuário' }}</span>
             <span class="profile-email">{{ auth.user.value?.email || 'email' }}</span>
           </div>
-          <router-link to="/configuracoes" @click="closeProfileMenu" class="profile-menu-item">Configurações</router-link>
+          <router-link to="/configuracoes" @click="closeProfileMenu" class="profile-menu-item">
+            Configurações
+          </router-link>
           <div class="profile-menu-item" @click="toggleTheme">Alterar Tema</div>
           <div class="profile-menu-item" @click="logout">Sair</div>
         </div>
@@ -69,10 +71,20 @@
 
 <script setup>
 import { ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { useAuth } from '../auth';
 
 const auth = useAuth();
-const { logout } = useAuth();
+const router = useRouter();
+
+const logout = async () => {
+  try {
+    await auth.logout(); // encerra a sessão
+    router.push('/'); // redireciona para a landing page
+  } catch (err) {
+    console.error('Erro ao sair:', err);
+  }
+};
 
 const isExpanded = ref(false);
 const activeSubMenu = ref(null);
@@ -175,12 +187,9 @@ const menuItems = ref([
   {
     name: 'Usuários',
     icon: 'fa-solid fa-users',
-    children: [
-      { name: 'Lista de Usuários', path: '/configuracoes/usuarios' }
-    ]
-  }
+    children: [{ name: 'Lista de Usuários', path: '/configuracoes/usuarios' }],
+  },
 ]);
-
 </script>
 
 <style scoped>
@@ -197,8 +206,7 @@ const menuItems = ref([
   display: flex;
   flex-direction: column;
   padding: 1.5rem 1rem;
-  transition: width 0.2s ease; 
-
+  transition: width 0.2s ease;
   position: fixed;
   top: 0;
   left: 0;
@@ -236,7 +244,7 @@ const menuItems = ref([
   font-weight: 600;
   opacity: 0;
   white-space: nowrap;
-  transition: opacity 0.15s ease 0.05s; 
+  transition: opacity 0.15s ease 0.05s;
   pointer-events: none;
 }
 
@@ -261,7 +269,7 @@ const menuItems = ref([
   color: var(--text-secondary);
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease; 
+  transition: background-color 0.2s ease, color 0.2s ease;
   text-decoration: none;
 }
 
@@ -282,7 +290,7 @@ const menuItems = ref([
 .menu-link-l1 span {
   opacity: 0;
   white-space: nowrap;
-  transition: opacity 0.15s ease 0.05s; 
+  transition: opacity 0.15s ease 0.05s;
   pointer-events: none;
 }
 
@@ -304,10 +312,9 @@ const menuItems = ref([
   padding: 1.5rem;
   z-index: 100;
   opacity: 0;
-  
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.15s ease, visibility 0.15s ease, left 0.2s ease; 
+  transition: opacity 0.15s ease, visibility 0.15s ease, left 0.2s ease;
 }
 
 .sidebar-l2.show {
@@ -439,7 +446,7 @@ const menuItems = ref([
   background: transparent;
 }
 .sidebar-wrapper::after {
-  content: "";
+  content: '';
   position: absolute;
   bottom: 0;
   left: 0;

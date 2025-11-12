@@ -1,45 +1,8 @@
--- ========= TABELAS BASE (SEM DEPENDÊNCIAS DIRETAS) =========
-
-CREATE TABLE IF NOT EXISTS usuarios (
+-- ========= TABELA MESTRE (TENANTS) =========
+-- Esta é a tabela mais importante. Ela define as "empresas"
+-- (ou "inquilinos") do seu sistema.
+CREATE TABLE IF NOT EXISTS empresas (
   id SERIAL PRIMARY KEY,
-  nome VARCHAR(100) NOT NULL,
-  email VARCHAR(100) NOT NULL UNIQUE,
-  senha VARCHAR(255) NOT NULL,
-  cargo VARCHAR(50) DEFAULT 'vendedor',
-  criado_em TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS clientes (
-  id SERIAL PRIMARY KEY,
-  nome VARCHAR(100) NOT NULL,
-  email VARCHAR(100) UNIQUE,
-  telefone VARCHAR(20),
-  criado_em TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS fornecedores (
-  id SERIAL PRIMARY KEY,
-  nome VARCHAR(100) NOT NULL,
-  cnpj VARCHAR(20) UNIQUE,
-  telefone VARCHAR(20),
-  email VARCHAR(100)
-);
-
-CREATE TABLE IF NOT EXISTS categorias (
-  id SERIAL PRIMARY KEY,
-  nome VARCHAR(50) NOT NULL UNIQUE
-);
-
-CREATE TABLE IF NOT EXISTS vendedores (
-  id SERIAL PRIMARY KEY,
-  nome VARCHAR(100) NOT NULL,
-  email VARCHAR(100) UNIQUE,
-  telefone VARCHAR(20),
-  percentual_comissao NUMERIC(5, 2) DEFAULT 0
-);
-
-CREATE TABLE IF NOT EXISTS empresa_config (
-  id INT PRIMARY KEY DEFAULT 1,
   razao_social VARCHAR(255),
   nome_fantasia VARCHAR(255),
   endereco VARCHAR(255),
@@ -56,21 +19,68 @@ CREATE TABLE IF NOT EXISTS empresa_config (
   tipo_pessoa VARCHAR(20),
   cnpj VARCHAR(20),
   inscricao_estadual VARCHAR(20),
-  regime_tributario VARCHAR(100)
+  regime_tributario VARCHAR(100),
+  criado_em TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ========= ADICIONANDO COLUNA COM AUTO-REFERÊNCIA =========
+-- ========= TABELAS BASE (COM REFERÊNCIA DE EMPRESA) =========
 
-ALTER TABLE categorias
-ADD COLUMN IF NOT EXISTS categoria_pai_id INT REFERENCES categorias(id) ON DELETE SET NULL;
+CREATE TABLE IF NOT EXISTS usuarios (
+  id SERIAL PRIMARY KEY,
+  empresa_id INT NOT NULL REFERENCES empresas(id) ON DELETE CASCADE, -- AQUI
+  nome VARCHAR(100) NOT NULL,
+  email VARCHAR(100) NOT NULL UNIQUE, -- O email de login é único em todo o sistema
+  senha VARCHAR(255) NOT NULL,
+  cargo VARCHAR(50) DEFAULT 'vendedor',
+  criado_em TIMESTAMPTZ DEFAULT NOW()
+);
 
--- ========= TABELAS COM DEPENDÊNCIAS PRIMÁRIAS =========
+CREATE TABLE IF NOT EXISTS clientes (
+  id SERIAL PRIMARY KEY,
+  empresa_id INT NOT NULL REFERENCES empresas(id) ON DELETE CASCADE, -- AQUI
+  nome VARCHAR(100) NOT NULL,
+  email VARCHAR(100),
+  telefone VARCHAR(20),
+  criado_em TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(empresa_id, email) -- Email deve ser único POR EMPRESA
+);
+
+CREATE TABLE IF NOT EXISTS fornecedores (
+  id SERIAL PRIMARY KEY,
+  empresa_id INT NOT NULL REFERENCES empresas(id) ON DELETE CASCADE, -- AQUI
+  nome VARCHAR(100) NOT NULL,
+  cnpj VARCHAR(20),
+  telefone VARCHAR(20),
+  email VARCHAR(100),
+  UNIQUE(empresa_id, cnpj) -- CNPJ deve ser único POR EMPRESA
+);
+
+CREATE TABLE IF NOT EXISTS categorias (
+  id SERIAL PRIMARY KEY,
+  empresa_id INT NOT NULL REFERENCES empresas(id) ON DELETE CASCADE, -- AQUI
+  nome VARCHAR(50) NOT NULL,
+  categoria_pai_id INT REFERENCES categorias(id) ON DELETE SET NULL,
+  UNIQUE(empresa_id, nome) -- Nome da categoria deve ser único POR EMPRESA
+);
+
+CREATE TABLE IF NOT EXISTS vendedores (
+  id SERIAL PRIMARY KEY,
+  empresa_id INT NOT NULL REFERENCES empresas(id) ON DELETE CASCADE, -- AQUI
+  nome VARCHAR(100) NOT NULL,
+  email VARCHAR(100),
+  telefone VARCHAR(20),
+  percentual_comissao NUMERIC(5, 2) DEFAULT 0,
+  UNIQUE(empresa_id, email) -- Email do vendedor único POR EMPRESA
+);
+
+-- ========= TABELAS DE PRODUTOS E CAIXA (COM REFERÊNCIA DE EMPRESA) =========
 
 CREATE TABLE IF NOT EXISTS produtos (
   id SERIAL PRIMARY KEY,
+  empresa_id INT NOT NULL REFERENCES empresas(id) ON DELETE CASCADE, -- AQUI
   tipo VARCHAR(50),
   nome VARCHAR(100) NOT NULL,
-  sku VARCHAR(50) UNIQUE,
+  sku VARCHAR(50),
   gtin VARCHAR(50),
   origem VARCHAR(50),
   ncm VARCHAR(20),
@@ -93,22 +103,25 @@ CREATE TABLE IF NOT EXISTS produtos (
   descricao TEXT,
   garantia INT,
   categoria_id INT REFERENCES categorias(id) ON DELETE SET NULL,
-  imagem TEXT
+  imagem TEXT,
+  UNIQUE(empresa_id, sku) -- SKU deve ser único POR EMPRESA
 );
 
+-- Tabela `caixa_status` redesenhada para Multi-Tenant
 CREATE TABLE IF NOT EXISTS caixa_status (
-  id INT PRIMARY KEY DEFAULT 1,
+  empresa_id INT PRIMARY KEY NOT NULL REFERENCES empresas(id) ON DELETE CASCADE, -- AQUI
   aberto BOOLEAN NOT NULL DEFAULT false,
-  usuario_abertura_id INT REFERENCES usuarios(id),
+  usuario_abertura_id INT REFERENCES usuarios(id) ON DELETE SET NULL,
   data_abertura TIMESTAMPTZ,
   valor_inicial NUMERIC(10, 2),
-  usuario_fechamento_id INT REFERENCES usuarios(id),
+  usuario_fechamento_id INT REFERENCES usuarios(id) ON DELETE SET NULL,
   data_fechamento TIMESTAMPTZ,
   valor_final NUMERIC(10, 2)
 );
 
 CREATE TABLE IF NOT EXISTS caixa_movimentacoes (
   id SERIAL PRIMARY KEY,
+  empresa_id INT NOT NULL REFERENCES empresas(id) ON DELETE CASCADE, -- AQUI
   tipo VARCHAR(20) NOT NULL CHECK (tipo IN ('abertura', 'reforco', 'sangria', 'venda', 'fechamento', 'saida')),
   valor NUMERIC(10, 2) NOT NULL,
   descricao TEXT,
@@ -122,6 +135,7 @@ CREATE TABLE IF NOT EXISTS caixa_movimentacoes (
 
 CREATE TABLE IF NOT EXISTS compromissos (
   id SERIAL PRIMARY KEY,
+  empresa_id INT NOT NULL REFERENCES empresas(id) ON DELETE CASCADE, -- AQUI
   titulo VARCHAR(255) NOT NULL,
   descricao TEXT,
   data_inicio TIMESTAMPTZ NOT NULL,
@@ -131,10 +145,11 @@ CREATE TABLE IF NOT EXISTS compromissos (
   criado_em TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ========= TABELAS DE COMPRAS E VENDAS =========
+-- ========= TABELAS DE COMPRAS E VENDAS (COM REFERÊNCIA DE EMPRESA) =========
 
 CREATE TABLE IF NOT EXISTS ordem_compra (
   id SERIAL PRIMARY KEY,
+  empresa_id INT NOT NULL REFERENCES empresas(id) ON DELETE CASCADE, -- AQUI
   fornecedor_id INT REFERENCES fornecedores(id) ON DELETE SET NULL,
   data_ordem TIMESTAMPTZ DEFAULT NOW(),
   status VARCHAR(20) DEFAULT 'aberta' CHECK (status IN ('aberta','atendida','cancelada'))
@@ -142,6 +157,7 @@ CREATE TABLE IF NOT EXISTS ordem_compra (
 
 CREATE TABLE IF NOT EXISTS pedidos_venda (
   id SERIAL PRIMARY KEY,
+  empresa_id INT NOT NULL REFERENCES empresas(id) ON DELETE CASCADE, -- AQUI
   cliente_id INT REFERENCES clientes(id) ON DELETE SET NULL,
   vendedor_id INT REFERENCES vendedores(id) ON DELETE SET NULL,
   data_pedido TIMESTAMPTZ DEFAULT NOW(),
@@ -151,25 +167,29 @@ CREATE TABLE IF NOT EXISTS pedidos_venda (
 
 CREATE TABLE IF NOT EXISTS funcionarios (
   id SERIAL PRIMARY KEY,
+  empresa_id INT NOT NULL REFERENCES empresas(id) ON DELETE CASCADE, -- AQUI
   nome VARCHAR(100) NOT NULL,
-  cpf VARCHAR(14) UNIQUE,
+  cpf VARCHAR(14),
   cargo VARCHAR(100),
   data_admissao DATE,
   salario_base NUMERIC(10, 2) DEFAULT 0,
-  ativo BOOLEAN DEFAULT true
+  ativo BOOLEAN DEFAULT true,
+  UNIQUE(empresa_id, cpf) -- CPF único POR EMPRESA
 );
 
 CREATE TABLE IF NOT EXISTS folhas_pagamento (
   id SERIAL PRIMARY KEY,
+  empresa_id INT NOT NULL REFERENCES empresas(id) ON DELETE CASCADE, -- AQUI
   mes_referencia INT NOT NULL,
   ano_referencia INT NOT NULL,
   data_pagamento DATE,
   status VARCHAR(20) DEFAULT 'aberta' CHECK (status IN ('aberta','calculada','paga')),
-  UNIQUE (mes_referencia, ano_referencia)
+  UNIQUE (empresa_id, mes_referencia, ano_referencia) -- Folha única POR EMPRESA por mês/ano
 );
 
 CREATE TABLE IF NOT EXISTS holerites (
   id SERIAL PRIMARY KEY,
+  empresa_id INT NOT NULL REFERENCES empresas(id) ON DELETE CASCADE, -- AQUI (Opcional, mas boa prática)
   folha_id INT NOT NULL REFERENCES folhas_pagamento(id) ON DELETE CASCADE,
   funcionario_id INT NOT NULL REFERENCES funcionarios(id) ON DELETE RESTRICT,
   salario_base_calculo NUMERIC(10, 2) DEFAULT 0,
@@ -195,6 +215,7 @@ CREATE TABLE IF NOT EXISTS holerites (
 
 CREATE TABLE IF NOT EXISTS contas_pagar (
   id SERIAL PRIMARY KEY,
+  empresa_id INT NOT NULL REFERENCES empresas(id) ON DELETE CASCADE, -- AQUI
   fornecedor_id INT REFERENCES fornecedores(id) ON DELETE SET NULL,
   ordem_compra_id INT REFERENCES ordem_compra(id) ON DELETE SET NULL,
   descricao VARCHAR(255),
@@ -206,6 +227,7 @@ CREATE TABLE IF NOT EXISTS contas_pagar (
 
 CREATE TABLE IF NOT EXISTS contas_receber (
   id SERIAL PRIMARY KEY,
+  empresa_id INT NOT NULL REFERENCES empresas(id) ON DELETE CASCADE, -- AQUI
   cliente_id INT REFERENCES clientes(id) ON DELETE SET NULL,
   pedidos_venda_id INT REFERENCES pedidos_venda(id) ON DELETE SET NULL,
   descricao VARCHAR(255),
@@ -219,10 +241,11 @@ CREATE TABLE IF NOT EXISTS contas_receber (
   forma_recebimento VARCHAR(50)
 );
 
--- ========= TABELA DE NOTAS DE ENTRADA (ANTES DE ESTOQUE) =========
+-- ========= TABELA DE NOTAS E ESTOQUE (COM REFERÊNCIA DE EMPRESA) =========
 
 CREATE TABLE IF NOT EXISTS notas_entrada (
   id SERIAL PRIMARY KEY,
+  empresa_id INT NOT NULL REFERENCES empresas(id) ON DELETE CASCADE, -- AQUI
   fornecedor_id INT REFERENCES fornecedores(id) ON DELETE SET NULL,
   numero_documento VARCHAR(50),
   data_emissao TIMESTAMPTZ DEFAULT NOW(),
@@ -231,10 +254,9 @@ CREATE TABLE IF NOT EXISTS notas_entrada (
   status VARCHAR(20) DEFAULT 'digitacao' CHECK (status IN ('digitacao','finalizada','cancelada'))
 );
 
--- ========= ESTOQUE =========
-
 CREATE TABLE IF NOT EXISTS estoque (
   id SERIAL PRIMARY KEY,
+  empresa_id INT NOT NULL REFERENCES empresas(id) ON DELETE CASCADE, -- AQUI
   produto_id INT NOT NULL REFERENCES produtos(id) ON DELETE CASCADE,
   quantidade INT NOT NULL,
   tipo_movimento VARCHAR(20) NOT NULL CHECK (tipo_movimento IN ('entrada','saida','balanco')),
@@ -244,10 +266,11 @@ CREATE TABLE IF NOT EXISTS estoque (
   pedidos_venda_id INT REFERENCES pedidos_venda(id) ON DELETE SET NULL
 );
 
--- ========= TABELAS DE ITENS =========
+-- ========= TABELAS DE ITENS (COM REFERÊNCIA DE EMPRESA) =========
 
 CREATE TABLE IF NOT EXISTS ordem_compra_itens (
   id SERIAL PRIMARY KEY,
+  empresa_id INT NOT NULL REFERENCES empresas(id) ON DELETE CASCADE, -- AQUI
   ordem_compra_id INT NOT NULL REFERENCES ordem_compra(id) ON DELETE CASCADE,
   produto_id INT REFERENCES produtos(id) ON DELETE SET NULL,
   quantidade INT NOT NULL,
@@ -256,6 +279,7 @@ CREATE TABLE IF NOT EXISTS ordem_compra_itens (
 
 CREATE TABLE IF NOT EXISTS nota_entrada_itens (
   id SERIAL PRIMARY KEY,
+  empresa_id INT NOT NULL REFERENCES empresas(id) ON DELETE CASCADE, -- AQUI
   nota_entrada_id INT NOT NULL REFERENCES notas_entrada(id) ON DELETE CASCADE,
   produto_id INT NOT NULL REFERENCES produtos(id) ON DELETE RESTRICT,
   quantidade INT NOT NULL,
@@ -265,6 +289,7 @@ CREATE TABLE IF NOT EXISTS nota_entrada_itens (
 
 CREATE TABLE IF NOT EXISTS pedido_itens (
   id SERIAL PRIMARY KEY,
+  empresa_id INT NOT NULL REFERENCES empresas(id) ON DELETE CASCADE, -- AQUI
   pedido_id INT NOT NULL REFERENCES pedidos_venda(id) ON DELETE CASCADE,
   produto_id INT REFERENCES produtos(id) ON DELETE SET NULL,
   quantidade INT NOT NULL,
@@ -273,6 +298,7 @@ CREATE TABLE IF NOT EXISTS pedido_itens (
 
 CREATE TABLE IF NOT EXISTS propostas (
   id SERIAL PRIMARY KEY,
+  empresa_id INT NOT NULL REFERENCES empresas(id) ON DELETE CASCADE, -- AQUI
   cliente_id INT REFERENCES clientes(id) ON DELETE SET NULL,
   vendedor_id INT REFERENCES vendedores(id) ON DELETE SET NULL,
   data_proposta TIMESTAMPTZ DEFAULT NOW(),
@@ -285,6 +311,7 @@ CREATE TABLE IF NOT EXISTS propostas (
 
 CREATE TABLE IF NOT EXISTS proposta_itens (
   id SERIAL PRIMARY KEY,
+  empresa_id INT NOT NULL REFERENCES empresas(id) ON DELETE CASCADE, -- AQUI
   proposta_id INT NOT NULL REFERENCES propostas(id) ON DELETE CASCADE,
   produto_id INT REFERENCES produtos(id) ON DELETE SET NULL,
   descricao_produto VARCHAR(255),
@@ -292,10 +319,4 @@ CREATE TABLE IF NOT EXISTS proposta_itens (
   preco_unitario NUMERIC(10, 2) NOT NULL
 );
 
--- ========= INSERÇÕES INICIAIS ==========
-
-INSERT INTO caixa_status (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
-INSERT INTO empresa_config (id, nome_fantasia) VALUES (1, 'BankaiERP') ON CONFLICT (id) DO NOTHING;
-INSERT INTO categorias (nome) VALUES ('Geral') ON CONFLICT (nome) DO NOTHING;
-INSERT INTO clientes (nome, email, telefone) VALUES ('Consumidor Final', 'consumidor@final.com', '000000000') ON CONFLICT (email) DO NOTHING;
-INSERT INTO vendedores (nome, email, telefone) VALUES ('Vendedor Padrão', 'vendedor@loja.com', '11987654321') ON CONFLICT (email) DO NOTHING;
+-- FIM DO SCRIPT
