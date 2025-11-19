@@ -63,7 +63,7 @@ Cada módulo possui abas e seções organizadas para facilitar a navegação e o
 
 ## 📸 Exemplo visual
 
-<img width="600" height="400" alt="image" src="https://github.com/user-attachments/assets/69824483-1dbc-4d34-b9fd-616b39859419" />
+<img width="800" height="600" alt="image" src="https://github.com/user-attachments/assets/69824483-1dbc-4d34-b9fd-616b39859419" />
 
 
 > Exemplo ilustrativo da tela principal do Bankai ERP após integração completa.
